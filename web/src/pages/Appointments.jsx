@@ -1,37 +1,45 @@
+// src/pages/Appointments.jsx
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { fetchAppointments, createAppointment } from '../services/appointmentsService'
+import { fetchAppointments, createAppointment, cancelAppointment } from '../services/appointmentsService'
 
 export default function Appointments() {
   const { user } = useAuth()
   const [appointments, setAppointments] = useState([])
+  const [barbers, setBarbers] = useState([])
+  const [services, setServices] = useState([])
+  const [form, setForm] = useState({ date: '', time: '', barber_id: '', service_id: '' })
   const [message, setMessage] = useState('')
-  const [form, setForm] = useState({ date: '', time: '', barber_id: 1, service_id: 1 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
       if (!user || !user.access_token) {
-        console.warn('⚠️ Kein Token vorhanden – warte auf Login...')
         setMessage('Nicht eingeloggt oder kein Token gefunden.')
         setLoading(false)
         return
       }
 
-      console.log('🔐 Token vorhanden, lade Termine:', user.access_token)
-
       try {
-        const data = await fetchAppointments(user.access_token)
+        let appointmentsRes = await fetchAppointments(user.access_token)
+        if (!Array.isArray(appointmentsRes)) appointmentsRes = []
 
-        if (!Array.isArray(data)) {
-          console.error('❌ Unerwartete Antwort:', data)
-          setMessage('Fehler beim Laden der Termine.')
-        } else {
-          setAppointments(data)
+        const barbersRes = await fetch('/api/barbers')
+        const servicesRes = await fetch('/api/services')
+
+        if (!barbersRes.ok || !servicesRes.ok) {
+          throw new Error('Fehler beim Abrufen von Barbern oder Services')
         }
+
+        const barbersData = await barbersRes.json()
+        const servicesData = await servicesRes.json()
+
+        setAppointments(appointmentsRes)
+        setBarbers(barbersData)
+        setServices(servicesData)
       } catch (err) {
-        console.error('❌ Fehler beim Laden:', err)
-        setMessage('Fehler beim Laden der Termine.')
+        console.error('Fehler beim Laden der Daten:', err)
+        setMessage('Verbindungsfehler beim Laden der Termine')
       }
 
       setLoading(false)
@@ -51,33 +59,42 @@ export default function Appointments() {
     const userId = user.user?.id || user.id
 
     const appointment = {
-      ...form,
-      user_id: userId, // ✅ angepasst für deine Tabelle
+      user_id: userId,
+      barber_id: form.barber_id,
+      service_id: form.service_id,
       appointment_time: `${form.date}T${form.time}`,
-      status: 'confirmed' // falls du es setzen willst
+      status: 'confirmed'
     }
-
-    console.log('📨 Termin senden:', appointment)
 
     try {
       const result = await createAppointment(appointment, user.access_token)
 
       if (result.error) {
-        setMessage(`❌ Fehler: ${result.error}`)
+        setMessage(`❌ ${result.error}`)
       } else {
         setMessage('✅ Termin erfolgreich erstellt')
         setAppointments([...appointments, result])
       }
-
     } catch (err) {
-      console.error('❌ Fehler beim Erstellen:', err)
+      console.error('Fehler beim Erstellen:', err)
       setMessage('Fehler beim Erstellen des Termins.')
     }
   }
 
-  if (loading) {
-    return <p style={{ color: 'orange' }}>🔄 Lade Benutzerdaten...</p>
+  const handleCancel = async (id) => {
+    if (!user?.access_token) return
+
+    try {
+      await cancelAppointment(id, user.access_token)
+      setAppointments(prev => prev.filter(appt => appt.id !== id))
+      setMessage('✅ Termin erfolgreich storniert')
+    } catch (err) {
+      console.error('Fehler beim Stornieren:', err)
+      setMessage('Fehler beim Stornieren des Termins')
+    }
   }
+
+  if (loading) return <p>Lade Daten...</p>
 
   return (
     <div>
@@ -96,15 +113,36 @@ export default function Appointments() {
           onChange={e => setForm({ ...form, time: e.target.value })}
           required
         />
+        <select
+          value={form.barber_id}
+          onChange={e => setForm({ ...form, barber_id: e.target.value })}
+          required
+        >
+          <option value=''>Barber wählen</option>
+          {barbers.map(b => (
+            <option key={b.id} value={b.id}>{b.full_name}</option>
+          ))}
+        </select>
+        <select
+          value={form.service_id}
+          onChange={e => setForm({ ...form, service_id: e.target.value })}
+          required
+        >
+          <option value=''>Service wählen</option>
+          {services.map(s => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
         <button type="submit">Termin buchen</button>
       </form>
 
       {message && <p style={{ color: message.includes('Fehler') ? 'red' : 'green' }}>{message}</p>}
 
       <ul>
-        {(appointments || []).map((appt, index) => (
-          <li key={index}>
-            {appt.appointment_time} | Barber: {appt.barber_id} | Service: {appt.service_id}
+        {appointments.map((appt, i) => (
+          <li key={i}>
+            {appt.appointment_time} – Barber: {appt.barber_id}, Service: {appt.service_id}
+            <button onClick={() => handleCancel(appt.id)} style={{ marginLeft: '1rem' }}>Stornieren</button>
           </li>
         ))}
       </ul>

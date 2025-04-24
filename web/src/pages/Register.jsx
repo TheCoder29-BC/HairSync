@@ -4,12 +4,12 @@ import { useAuth } from '../context/AuthContext'
 export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const { login } = useAuth()
+  const [error, setError] = useState('')
+  const { login, notice } = useAuth() // 🔁 Hinweis aus AuthContext
 
   const handleRegister = async (e) => {
     e.preventDefault()
-    setError(null)
+    setError('')
 
     try {
       const res = await fetch('/api/auth/register', {
@@ -19,14 +19,12 @@ export default function Register() {
       })
 
       const data = await res.json()
-      console.log('🔁 Server-Antwort von /register:', data)
 
       if (!res.ok) {
         setError(data.error || 'Registrierung fehlgeschlagen')
         return
       }
 
-      // Erfolgreich registriert → Login direkt durchführen
       login({
         user: data.user,
         access_token: data.access_token,
@@ -34,8 +32,8 @@ export default function Register() {
       })
 
     } catch (err) {
-      console.error('❌ Fehler beim Registrieren:', err)
-      setError('Verbindung zum Server fehlgeschlagen')
+      console.error('Fehler bei Registrierung:', err)
+      setError('Verbindungsfehler bei der Registrierung.')
     }
   }
 
@@ -43,22 +41,23 @@ export default function Register() {
     <form onSubmit={handleRegister}>
       <h2>Registrieren</h2>
 
+      {/* 🔔 Session Hinweis */}
+      {notice && <p style={{ color: 'orange' }}>{notice}</p>}
+
       <input
         type="email"
-        placeholder="E-Mail"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={e => setEmail(e.target.value)}
+        placeholder="Email"
         required
       />
-
       <input
         type="password"
-        placeholder="Passwort"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={e => setPassword(e.target.value)}
+        placeholder="Passwort"
         required
       />
-
       <button type="submit">Registrieren</button>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}

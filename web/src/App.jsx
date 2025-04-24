@@ -17,13 +17,15 @@ function AppContent() {
 
   return (
     <>
-      <nav style={{ marginBottom: '1rem' }}>
+      <nav style={{ marginBottom: '1rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem' }}>
         {isLoggedIn ? (
           <>
-            👋 Willkommen, <strong>{user?.user?.email}</strong> |{' '}
+            <span style={{ marginRight: '1rem' }}>
+              👋 Willkommen, <strong>{user?.user?.email}</strong>
+            </span>
             <Link to="/dashboard">Dashboard</Link> |{' '}
             <Link to="/appointments">Termine</Link> |{' '}
-            <button onClick={logout}>Logout</button>
+            <button onClick={logout} style={{ marginLeft: '1rem' }}>Logout</button>
           </>
         ) : (
           <>

@@ -5,7 +5,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const { login } = useAuth()
+  const { login, notice } = useAuth() // 🆕 Hinweis holen
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -25,7 +25,6 @@ export default function Login() {
         return
       }
 
-      // ✅ Daten korrekt übergeben
       login({
         user: data.user,
         access_token: data.access_token,
@@ -41,6 +40,10 @@ export default function Login() {
   return (
     <form onSubmit={handleLogin}>
       <h2>Login</h2>
+
+      {/* Hinweis bei Session-Abbruch */}
+      {notice && <p style={{ color: 'orange' }}>{notice}</p>}
+
       <input
         type="email"
         value={email}
