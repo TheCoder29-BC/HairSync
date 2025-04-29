@@ -1,50 +1,44 @@
 // src/services/appointmentsService.js
+import { supabase } from '../supabaseClient.js'
 
-// ✅ GET /api/appointments
 export async function fetchAppointments(token) {
-  const res = await fetch('/api/appointments', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .eq('user_id', token) // Falls du Termine für einen spezifischen User holen möchtest
 
-  const { data, error } = await res.json()
+  if (error) {
+    console.error('Fehler beim Abrufen:', error.message)
+    return [] // Gibt eine leere Liste zurück, wenn ein Fehler auftritt
+  }
 
-  if (!res.ok) throw new Error(error || 'Fehler beim Abrufen der Termine')
-
-  return data || []
+  console.log('Appointments:', data)
+  return data
 }
 
-// ✅ POST /api/appointments
 export async function createAppointment(appointment, token) {
-  const res = await fetch('/api/appointments', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(appointment)
-  })
+  const { data, error } = await supabase
+    .from('appointments')
+    .insert([appointment])
 
-  const { data, error } = await res.json()
-
-  if (!res.ok) throw new Error(error || 'Fehler beim Erstellen des Termins')
+  if (error) {
+    console.error('Fehler beim Erstellen des Termins:', error.message)
+    return { error: error.message }
+  }
 
   return data
 }
 
-// ✅ DELETE /api/appointments/:id
 export async function cancelAppointment(id, token) {
-  const res = await fetch(`/api/appointments/${id}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
+  const { data, error } = await supabase
+    .from('appointments')
+    .delete()
+    .eq('id', id)
 
-  const { data, error } = await res.json()
-
-  if (!res.ok) throw new Error(error || 'Fehler beim Löschen des Termins')
+  if (error) {
+    console.error('Fehler beim Stornieren des Termins:', error.message)
+    return { error: error.message }
+  }
 
   return data
 }
