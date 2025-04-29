@@ -1,0 +1,35 @@
+/* src/components/Card.module.css */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 220px;
+  background: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: transform .2s;
+}
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.card h3 {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  padding: 0 0.5rem 1rem;
+}

@@ -1,0 +1,24 @@
+.nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.logo {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #111;
+}
+.links > * {
+  margin-left: 1rem;
+  text-decoration: none;
+  color: #111;
+}
+.logout {
+  margin-left: 1rem;
+  background: none;
+  border: none;
+  color: #c00;
+  cursor: pointer;
+}

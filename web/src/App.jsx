@@ -1,69 +1,95 @@
-import React from 'react'
-import { Routes, Route, Link, Navigate } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
+// src/App.jsx
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Navbar from './components/Navbar.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+import RegisterBarbershop from './pages/RegisterBarbershop.jsx';
+import Barbershops from './pages/Barbershops.jsx';
+import ShopDetail from './pages/ShopDetail.jsx';
+import CustomerAppointments from './pages/CustomerAppointments.jsx';
+import BarberDashboard from './pages/BarberDashboard.jsx';
+import Profile from './pages/Profile.jsx'; // ➡️ NEU importiert!
+import { useAuth } from './context/AuthContext.jsx';
 
-import Login from './pages/Login.jsx'
-import Register from './pages/Register.jsx'
-import Dashboard from './pages/Dashboard.jsx'
-import Appointments from './pages/Appointments.jsx'
+function RequireAuth({ children, role }) {
+  const { session } = useAuth();
 
-function PrivateRoute({ children }) {
-  const { isLoggedIn } = useAuth()
-  return isLoggedIn ? children : <Navigate to="/login" />
+  // Während der Session-Ladephase nichts rendern
+  if (session === null) return null;
+
+  // Wenn nicht eingeloggt ➔ zurück zur Login-Seite
+  if (!session) return <Navigate to="/login" replace />;
+
+  // Rolle prüfen
+  const userRole = session.user.user_metadata?.role;
+  if (role && userRole !== role) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }
 
-function AppContent() {
-  const { user, logout, isLoggedIn } = useAuth()
-
+export default function App() {
   return (
     <>
-      <nav style={{ marginBottom: '1rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem' }}>
-        {isLoggedIn ? (
-          <>
-            <span style={{ marginRight: '1rem' }}>
-              👋 Willkommen, <strong>{user?.user?.email}</strong>
-            </span>
-            <Link to="/dashboard">Dashboard</Link> |{' '}
-            <Link to="/appointments">Termine</Link> |{' '}
-            <button onClick={logout} style={{ marginLeft: '1rem' }}>Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link> |{' '}
-            <Link to="/register">Register</Link>
-          </>
-        )}
-      </nav>
-
+      <Navbar />
       <Routes>
+        {/* Default: Weiterleitung zum Login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* Öffentliche Routen */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/register-barbershop" element={<RegisterBarbershop />} />
+
+        {/* Kund:innen-Routen */}
         <Route
-          path="/dashboard"
+          path="/barbershops"
           element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
+            <RequireAuth role="customer">
+              <Barbershops />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/barbershops/:id"
+          element={
+            <RequireAuth role="customer">
+              <ShopDetail />
+            </RequireAuth>
           }
         />
         <Route
           path="/appointments"
           element={
-            <PrivateRoute>
-              <Appointments />
-            </PrivateRoute>
+            <RequireAuth role="customer">
+              <CustomerAppointments />
+            </RequireAuth>
           }
         />
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth> {/* ❗ Profil-Seite offen für ALLE eingeloggten Benutzer */}
+              <Profile />
+            </RequireAuth>
+          }
+        />
+
+        {/* Barber-Routen */}
+        <Route
+          path="/barber"
+          element={
+            <RequireAuth role="barber">
+              <BarberDashboard />
+            </RequireAuth>
+          }
+        />
+
+        {/* Fallback: Unbekannte Route ➔ Login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
-  )
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  )
+  );
 }

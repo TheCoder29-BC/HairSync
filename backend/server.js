@@ -1,30 +1,18 @@
-// backend/server.js
-
+// Beispiel: server.js im Backend
 import express from 'express'
 import cors from 'cors'
 
-// Routen-Importe
-import authRoutes from './routes/authRoutes.js'
-import appointmentRoutes from './routes/appointmentsRoutes.js'
-import serviceRoutes from './routes/serviceRoutes.js'
-import barberRoutes from './routes/barberRoutes.js'
-import barbershopsRoutes from './routes/barbershopsRoutes.js'
+import authRoutes from './routes/authRoutes.js'  // <-- wichtig
+// ... andere Imports
 
 const app = express()
-
-// Middleware
 app.use(cors())
 app.use(express.json())
 
-// Routen
-app.use('/api/auth', authRoutes)
-app.use('/api/appointments', appointmentRoutes)
-app.use('/api/services', serviceRoutes)
-app.use('/api/barbers', barberRoutes)
-app.use('/api/barbershops', barbershopsRoutes)
+// Routen einbinden
+app.use('/api/auth', authRoutes)  // <-- das brauchst du
 
 // Server starten
-const PORT = process.env.PORT || 4000
-app.listen(PORT, () => {
-  console.log(`✅ Backend läuft auf Port ${PORT}`)
+app.listen(4000, () => {
+  console.log('✅ Backend läuft auf Port 4000')
 })

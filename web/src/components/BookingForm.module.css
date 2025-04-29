@@ -1,0 +1,56 @@
+/* BookingForm.module.css */
+
+.form {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  max-width: 480px;
+  margin-top: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.field label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.field select,
+.field input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.submitBtn {
+  background-color: #f0b500;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  width: 100%;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitBtn:hover {
+  background-color: #d99a00;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: #555;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
