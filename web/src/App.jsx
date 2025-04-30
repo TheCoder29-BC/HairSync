@@ -1,33 +1,26 @@
 // src/App.jsx
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import RegisterBarbershop from './pages/RegisterBarbershop.jsx';
-import Barbershops from './pages/Barbershops.jsx';
-import ShopDetail from './pages/ShopDetail.jsx';
-import CustomerAppointments from './pages/CustomerAppointments.jsx';
-import BarberDashboard from './pages/BarberDashboard.jsx';
-import Profile from './pages/Profile.jsx'; // ➡️ NEU importiert!
-import { useAuth } from './context/AuthContext.jsx';
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import Navbar                     from './components/Navbar.jsx'
+import Login                      from './pages/Login.jsx'
+import Register                   from './pages/Register.jsx'
+import RegisterBarbershop         from './pages/RegisterBarbershop.jsx'
+import Barbershops                from './pages/Barbershops.jsx'
+import ShopDetail                 from './pages/ShopDetail.jsx'
+import CustomerAppointments       from './pages/CustomerAppointments.jsx'
+import BarbershopDashboard        from './pages/BarbershopDashboard.jsx'
+import ShopAppointments           from './pages/ShopAppointments.jsx'
+import Profile                    from './pages/Profile.jsx'
+import { useAuth }                from './context/AuthContext.jsx'
 
 function RequireAuth({ children, role }) {
-  const { session } = useAuth();
-
-  // Während der Session-Ladephase nichts rendern
-  if (session === null) return null;
-
-  // Wenn nicht eingeloggt ➔ zurück zur Login-Seite
-  if (!session) return <Navigate to="/login" replace />;
-
-  // Rolle prüfen
-  const userRole = session.user.user_metadata?.role;
-  if (role && userRole !== role) {
-    return <Navigate to="/login" replace />;
+  const { session } = useAuth()
+  if (session === undefined) return null      // noch am Laden
+  if (!session)           return <Navigate to="/login" replace />
+  if (role && session.user.user_metadata.role !== role) {
+    return <Navigate to="/login" replace />
   }
-
-  return children;
+  return children
 }
 
 export default function App() {
@@ -35,15 +28,14 @@ export default function App() {
     <>
       <Navbar />
       <Routes>
-        {/* Default: Weiterleitung zum Login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Öffentliche Routen */}
+        {/* public */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/register-barbershop" element={<RegisterBarbershop />} />
 
-        {/* Kund:innen-Routen */}
+        {/* customer */}
         <Route
           path="/barbershops"
           element={
@@ -71,25 +63,38 @@ export default function App() {
         <Route
           path="/profile"
           element={
-            <RequireAuth> {/* ❗ Profil-Seite offen für ALLE eingeloggten Benutzer */}
+            <RequireAuth>
               <Profile />
             </RequireAuth>
           }
         />
 
-        {/* Barber-Routen */}
+        {/* barbershop */}
         <Route
-          path="/barber"
+          path="/barbershop-dashboard"
           element={
-            <RequireAuth role="barber">
-              <BarberDashboard />
+            <RequireAuth role="barbershop">
+              <BarbershopDashboard />
             </RequireAuth>
           }
         />
-
-        {/* Fallback: Unbekannte Route ➔ Login */}
+        <Route
+          path="/shop-appointments"
+          element={
+            <RequireAuth role="barbershop">
+              <ShopAppointments />
+            </RequireAuth>
+          }
+        />
+        <Route 
+          path="/shop-appointments" element={
+            <RequireAuth role="barbershop">
+              <ShopAppointments /></RequireAuth>
+          }
+        />
+        {/* fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
-  );
+  )
 }

@@ -1,3 +1,4 @@
+/* src/pages/Login.module.css */
 :root {
   --primary: #1f2937;
   --accent : #eab308;
@@ -12,6 +13,8 @@
   min-height: 100vh;
   background: var(--bg);
   padding: 1rem;
+
+  font-family: inherit;
 }
 
 .card {
@@ -21,6 +24,8 @@
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   width: 100%;
   max-width: 360px;
+
+  font-family: inherit;
 }
 
 .title {
@@ -28,10 +33,14 @@
   font-size: 1.75rem;
   color: var(--primary);
   margin-bottom: 1rem;
+
+  font-family: inherit;
 }
 
 .field {
   margin-bottom: 1rem;
+
+  font-family: inherit;
 }
 
 .field label {
@@ -39,6 +48,8 @@
   margin-bottom: 0.25rem;
   color: var(--primary);
   font-weight: 500;
+
+  font-family: inherit;
 }
 
 .field input {
@@ -48,6 +59,8 @@
   border: 2px solid #d1d5db;
   border-radius: 0.5rem;
   transition: border-color .2s;
+
+  font-family: inherit;
 }
 
 .field input:focus {
@@ -65,6 +78,8 @@
   border-radius: 0.5rem;
   cursor: pointer;
   transition: background .2s;
+
+  font-family: inherit;
 }
 
 .button:hover {
@@ -75,17 +90,23 @@
   color: red;
   text-align: center;
   margin-bottom: 1rem;
+
+  font-family: inherit;
 }
 
 .footer {
   text-align: center;
   margin-top: 1rem;
+
+  font-family: inherit;
 }
 
 .footer a {
   color: var(--accent);
   text-decoration: none;
   font-weight: 500;
+
+  font-family: inherit;
 }
 
 .footer a:hover {

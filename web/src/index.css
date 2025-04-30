@@ -1,7 +1,7 @@
 /* src/index.css */
 
-/* 1) Google-Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* 1) Google-Font: Poppins in leichten Schnitten */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
 /* 2) Tailwind-Direktiven */
 @tailwind base;
@@ -10,8 +10,11 @@
 
 /* 3) eigene Base-Overrides */
 @layer base {
-  html, body {
-    font-family: 'Inter', sans-serif;
+  /* Body und alle Standard-Text-Elemente */
+  html,
+  body {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;              /* sehr leicht und modern */
     background-color: #f9fafb;
     color: #1f2937;
     margin: 0;
@@ -20,75 +23,85 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
+  /* Überschriften etwas stärker, aber immer noch schlank */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 400;
     color: #111827;
+    margin: 0;
   }
 
   a {
     color: #4f46e5;
     text-decoration: none;
   }
-
   a:hover {
     text-decoration: underline;
   }
 
-  input, select, textarea, button {
+  /* Form-Elemente und Buttons */
+  input,
+  select,
+  textarea,
+  button {
     border: 1px solid #d1d5db;
-    border-radius: .375rem;
-    padding: .5rem;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
     background: #fff;
     font-family: inherit;
     font-size: 1rem;
+    font-weight: 300;
   }
-
-  input:focus, select:focus, textarea:focus, button:focus {
+  input:focus,
+  select:focus,
+  textarea:focus,
+  button:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(99,102,241,0.5);
   }
 }
 
-/* 4) Animationen */
+/* 4+5) Animationen & Utility-Klassen */
+@layer utilities {
+  /* Bounce-In Card-Effekt */
+  @keyframes bounce-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.5) translateY(-50px);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.05) translateY(10px);
+    }
+    80% {
+      transform: scale(0.95) translateY(-5px);
+    }
+    100% {
+      transform: scale(1) translateY(0);
+    }
+  }
 
-/* Bounce-In Card Effekt */
-@keyframes bounce-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.5) translateY(-50px);
+  /* Fade-In für Dropdowns, Profile usw. */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  60% {
-    opacity: 1;
-    transform: scale(1.05) translateY(10px);
-  }
-  80% {
-    transform: scale(0.95) translateY(-5px);
-  }
-  100% {
-    transform: scale(1) translateY(0);
-  }
-}
 
-/* Fade-In sanfte Animation (Dropdowns, Profile, Mini-Überblendungen) */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+  /* Utility-Klassen */
+  .animate-bounce-in {
+    animation: bounce-in 0.7s ease forwards;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease forwards;
   }
-}
-
-/* 5) Utility Klassen */
-
-/* Bounce-In */
-.animate-bounce-in {
-  animation: bounce-in 0.7s ease forwards;
-}
-
-/* Fade-In */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease forwards;
 }

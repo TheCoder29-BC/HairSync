@@ -1,104 +1,161 @@
-// src/pages/Barbershops.jsx
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { supabase } from '../supabase/client.js'
-import styles from '../components/Card.module.css'
+import React, { useState } from 'react'
+import { supabase }    from '../supabase/client.js'
+import { useNavigate } from 'react-router-dom'
+import styles          from './Login.module.css'
 
-// 1) Lokale Bilder importieren
-import shop1  from '../assets/barbershops/shop1.jpg'
-import shop2  from '../assets/barbershops/shop2.jpg'
-import shop3  from '../assets/barbershops/shop3.jpg'
-import shop4  from '../assets/barbershops/shop4.jpg'
-import shop5  from '../assets/barbershops/shop5.jpg'
-import shop6  from '../assets/barbershops/shop6.jpg'
-import shop7  from '../assets/barbershops/shop7.jpg'
-import shop8  from '../assets/barbershops/shop8.jpg'
-import shop9  from '../assets/barbershops/shop9.jpg'
-import shop10 from '../assets/barbershops/shop10.jpg'
+export default function RegisterBarbershop() {
+  const [shopName,     setShopName    ] = useState('')
+  const [email,        setEmail       ] = useState('')
+  const [phone,        setPhone       ] = useState('')
+  const [street,       setStreet      ] = useState('')
+  const [city,         setCity        ] = useState('')
+  const [postalCode,   setPostalCode  ] = useState('')
+  const [password,     setPassword    ] = useState('')
+  const [confirm,      setConfirm     ] = useState('')
+  const [error,        setError       ] = useState(null)
+  const navigate = useNavigate()
 
-// 2) Map von Shop-Name → lokalem Bild
-const IMAGE_MAP = {
-  'Barber King':     shop1,
-  'Classic Cuts':    shop2,
-  'Urban Fade':      shop3,
-  'Retro Shave':     shop4,
-  "Gentlemen's Den": shop5,
-  'Modern Mane':     shop6,
-  'The Buzz Stop':   shop7,
-  'Fade & Blade':    shop8,
-  'Sharp Lines':     shop9,
-  'Clippers Club':   shop10,
-}
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError(null)
 
-export default function Barbershops() {
-  const [shops,   setShops]   = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-
-      // 3) Nur id, name und image_url auslesen
-      const { data, error } = await supabase
-        .from('barbershops')
-        .select('id, name, image_url')
-
-      if (error) {
-        console.error('Fehler beim Laden der Barbershops:', error)
-        setError(error.message)
-      } else {
-        setShops(data)
-      }
-      setLoading(false)
+    if (password !== confirm) {
+      setError('Passwörter stimmen nicht überein.')
+      return
     }
-    load()
-  }, [])
 
-  if (loading) {
-    return <div style={{ padding: '2rem' }}>Lade Barbershops…</div>
-  }
-  if (error) {
-    return (
-      <div style={{ padding: '2rem', color: 'crimson' }}>
-        Fehler: {error}
-      </div>
-    )
-  }
-  if (!shops.length) {
-    return <div style={{ padding: '2rem' }}>Keine Barbershops gefunden.</div>
+    // 1) Signup mit Rolle "barbershop"
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { role: 'barbershop' } }
+    })
+    if (signUpError) {
+      setError(signUpError.message)
+      return
+    }
+
+    // 2) Barbershop-Datensatz anlegen (ID wird automatisch generiert)
+    const userId = signUpData.user.id
+    const { error: shopErr } = await supabase
+      .from('barbershops')
+      .insert([{
+        name           : shopName,
+        email          : email,
+        phone          : phone,
+        street         : street,
+        city           : city,
+        postal_code    : postalCode,
+        owner_user_id  : userId,
+      }])
+    if (shopErr) {
+      setError(shopErr.message)
+      return
+    }
+
+    navigate('/login')
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: '2rem auto', padding: '0 1rem' }}>
-      <h1>Barbershops</h1>
-      <div className={styles.cardGrid}>
-        {shops.map(shop => {
-          // Reihenfolge der Bild-Suche:
-          // 1) image_url aus DB
-          // 2) Lokales IMAGE_MAP[shop.name]
-          // 3) Placeholder via URL mit shop.name
-          const imgSrc =
-            shop.image_url ||
-            IMAGE_MAP[shop.name] ||
-            `https://via.placeholder.com/300x200?text=${encodeURIComponent(shop.name)}`
+    <div className={styles.container}>
+      <form
+        onSubmit={handleSubmit}
+        className={styles.card}
+        style={{ width: '90%', maxWidth: '600px' }}
+      >
+        <h2 className={styles.title}>Als Barbershop registrieren</h2>
 
-          return (
-            <Link
-              key={shop.id}
-              to={`/barbershops/${shop.id}`}
-              className={styles.card}
-            >
-              <img
-                src={imgSrc}
-                alt={shop.name}
-                style={{ objectFit: 'cover' }}
-              />
-              <h3>{shop.name}</h3>
-            </Link>
-          )
-        })}
-      </div>
+        {error && <p className={styles.error}>{error}</p>}
+
+        <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1rem 2rem'
+        }}>
+          <div className={styles.field} style={{ gridColumn: '1 / -1' }}>
+            <label>Shop-Name</label>
+            <input
+              type="text"
+              value={shopName}
+              onChange={e => setShopName(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label>Telefon</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label>Straße</label>
+            <input
+              type="text"
+              value={street}
+              onChange={e => setStreet(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label>Stadt</label>
+            <input
+              type="text"
+              value={city}
+              onChange={e => setCity(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label>PLZ</label>
+            <input
+              type="text"
+              value={postalCode}
+              onChange={e => setPostalCode(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label>Passwort</label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label>Passwort bestätigen</label>
+            <input
+              type="password"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <button type="submit" className={styles.button}>
+          Registrieren
+        </button>
+
+        <div className={styles.footer}>
+          Schon registriert? <a href="/login">Einloggen</a><br/>
+          Kunde? <a href="/register">Hier als Kunde registrieren</a>
+        </div>
+      </form>
     </div>
   )
 }

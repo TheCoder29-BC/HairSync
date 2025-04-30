@@ -1,12 +1,12 @@
 // src/pages/ShopDetail.jsx
 import React, { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import Calendar from 'react-calendar'
+import { useParams, Link }            from 'react-router-dom'
+import Calendar                        from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { Toaster, toast } from 'react-hot-toast'
-import { useAuth } from '../context/AuthContext.jsx'
-import { supabase } from '../supabase/client.js'
-import styles from './ShopDetail.module.css'
+import { Toaster, toast }              from 'react-hot-toast'
+import { useAuth }                     from '../context/AuthContext.jsx'
+import { supabase }                    from '../supabase/client.js'
+import styles                          from './ShopDetail.module.css'
 
 // 1) Lokale Bilder importieren
 import shop1  from '../assets/barbershops/shop1.jpg'   // Barber King
@@ -56,16 +56,15 @@ const IMAGE_MAP = {
 export default function ShopDetail() {
   const { session } = useAuth()
   const { id: barbershopId } = useParams()
-  const navigate = useNavigate()
 
-  const [shop, setShop]         = useState(null)
-  const [barbers, setBarbers]   = useState([])
-  const [services, setServices] = useState([])
-  const [date, setDate]         = useState(new Date())
-  const [time, setTime]         = useState('')
-  const [selectedBarber, setBarber]   = useState('')
+  const [shop, setShop]             = useState(null)
+  const [barbers, setBarbers]       = useState([])
+  const [services, setServices]     = useState([])
+  const [date, setDate]             = useState(new Date())
+  const [time, setTime]             = useState('')
+  const [selectedBarber, setBarber] = useState('')
   const [selectedService, setService] = useState('')
-  const [loading, setLoading]   = useState(false)
+  const [loading, setLoading]       = useState(false)
   const [appointment, setAppointment] = useState(null)
 
   const slots = Array.from({ length: 9 }, (_, i) => `${9 + i}:00`)
@@ -107,42 +106,42 @@ export default function ShopDetail() {
   if (!session) return null
   if (!shop)     return <div className={styles.loading}>Lade Shop…</div>
 
-  // *** Bildquelle: ZUERST lokales IMAGE_MAP, dann DB.image_url ***
-  const key = shop.name.trim().toLowerCase()
+  // *** Bildquelle: zuerst IMAGE_MAP, sonst DB.image_url
+  const key   = shop.name.trim().toLowerCase()
   const thumb = IMAGE_MAP[key] || shop.image_url
 
-  const handleBooking = async (e) => {
+  const handleBooking = async e => {
     e.preventDefault()
     setLoading(true)
-  
+
     // Datum + Uhrzeit kombinieren
     const dt = new Date(date)
     const [h, m] = time.split(':').map(Number)
     dt.setHours(h, m, 0, 0)
-  
-    // <- hier die wichtige Änderung:
+
+    // jetzt status: 'pending' verwenden
     const { data, error } = await supabase
       .from('appointments')
       .insert([{
         appointment_time: dt.toISOString(),
-        status          : 'confirmed',
+        status          : 'pending',
         user_id         : session.user.id,
-        barbershop_id   : barbershopId,    // <-- JS-Variable barbershopId
+        barbershop_id   : barbershopId,
         barber_id       : selectedBarber,
         service_id      : selectedService,
       }])
       .single()
-  
+
     setLoading(false)
     if (error) {
       toast.error('Fehler beim Buchen: ' + error.message)
     } else {
-      toast.success('Termin erfolgreich gebucht!')
+      toast.success('Termin erfolgreich gebucht! (status pending)')
       setAppointment(data)
       setTime('')
       setBarber('')
       setService('')
-      // optional: navigate('/meine-termine')
+      // falls gewünscht: navigate('/appointments')
     }
   }
 
@@ -150,7 +149,6 @@ export default function ShopDetail() {
     <div className={styles.wrapper}>
       <Toaster position="top-center" />
       <div className={styles.card}>
-
         {loading && (
           <div className={styles.spinnerOverlay}>
             <div className={styles.spinner}><div/><div/><div/></div>
@@ -238,7 +236,7 @@ export default function ShopDetail() {
               <p>
                 <strong>Datum:</strong>{' '}
                 {new Date(appointment.appointment_time)
-                  .toLocaleString('de-DE', { dateStyle:'short', timeStyle:'short' })}
+                  .toLocaleString('de-DE',{ dateStyle:'short', timeStyle:'short' })}
               </p>
               <p>
                 <strong>Barber:</strong>{' '}

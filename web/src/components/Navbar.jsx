@@ -1,160 +1,139 @@
 // src/components/Navbar.jsx
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import React, { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate, useLocation }     from 'react-router-dom'
+import { useAuth }                            from '../context/AuthContext.jsx'
+import styles                                 from './Navbar.module.css'
 
 export default function Navbar() {
-  const { session, logout } = useAuth();
-  const loc         = useLocation();
-  const navigate    = useNavigate();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { session, logout } = useAuth()
+  const navigate            = useNavigate()
+  const { pathname }        = useLocation()
+  const [open, setOpen]     = useState(false)
+  const dropdownRef         = useRef()
 
-  const linkBaseStyle = {
-    color: 'black',
-    textDecoration: 'none',
-    fontWeight: 500,
-    transition: 'color 150ms, text-decoration 150ms',
-  };
+  // Klick außerhalb = Dropdown schließen
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
 
-  const activeStyle = {
-    color: '#4F46E5',
-    textDecoration: 'underline',
-  };
+  const handleSignOut = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
-  const toggleDropdown = () => setDropdownOpen(o => !o);
-  const handleLogout  = () => {
-    logout();
-    setDropdownOpen(false);
-  };
+  // Rolle auslesen
+  const role = session?.user?.user_metadata?.role
 
   return (
-    <nav style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '1rem 2rem',
-      borderBottom: '1px solid #eee',
-      backgroundColor: 'white',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-    }}>
-      {/* Logo */}
-      <Link to="/barbershops" style={{
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-        textDecoration: 'none',
-        color: '#4F46E5',
-      }}>
+    <nav className={styles.navbar}>
+      <Link to="/" className={styles.logo} style={{ fontFamily: 'inherit' }}>
         HairSync
       </Link>
 
-      {/* Nur anzeigen, wenn eingeloggt */}
-      {session && (
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', position: 'relative' }}>
-          <Link
-            to="/barbershops"
-            style={{
-              ...linkBaseStyle,
-              ...(loc.pathname.startsWith('/barbershops') ? activeStyle : {}),
-            }}
-          >
-            Barbershops
-          </Link>
+      <div className={styles.right}>
+        {/* --- Kunde-Links --- */}
+        {session && role === 'customer' && (
+          <>
+            <Link
+              to="/barbershops"
+              className={`${styles.link} ${
+                pathname.startsWith('/barbershops') ? styles.active : ''
+              }`}
+            >
+              Barbershops
+            </Link>
+            <Link
+              to="/appointments"
+              className={`${styles.link} ${
+                pathname.startsWith('/appointments') ? styles.active : ''
+              }`}
+            >
+              Meine Termine
+            </Link>
+          </>
+        )}
 
-          <Link
-            to="/appointments"
-            style={{
-              ...linkBaseStyle,
-              ...(loc.pathname === '/appointments' ? activeStyle : {}),
-            }}
-          >
-            Meine Termine
-          </Link>
+        {/* --- Barbershop-Links --- */}
+        {session && role === 'barbershop' && (
+          <>
+            <Link
+              to="/barbershop-dashboard"
+              className={`${styles.link} ${
+                pathname.startsWith('/barbershop-dashboard') ? styles.active : ''
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/shop-appointments"
+              className={`${styles.link} ${
+                pathname.startsWith('/shop-appointments') ? styles.active : ''
+              }`}
+            >
+              Termine
+            </Link>
+          </>
+        )}
 
-          {/* User-Icon + Dropdown */}
-          <div style={{ position: 'relative' }}>
+        {/* --- Profil-Dropdown --- */}
+        {session && (
+          <div className={styles.profile} ref={dropdownRef}>
             <button
-              onClick={toggleDropdown}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              className={styles.iconButton}
+              onClick={() => setOpen(o => !o)}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
+                className={styles.icon}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                style={{ height: '2rem', width: '2rem', color: '#374151' }}
+                strokeWidth={2}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                  d="M5.121 17.804A9.953 9.953 0 0112 15c2.21 0 4.249.716 5.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5.121 17.804A10.97 10.97 0 0112 15c2.385 0 4.58.78 
+                     6.379 2.093M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
             </button>
 
-            {dropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '2.5rem',
-                right: 0,
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                minWidth: '12rem',
-                zIndex: 100,
-                animation: 'fadeIn 0.2s ease-in-out',
-              }}>
-                {/* Eingeloggt–Status */}
-                <div style={{
-                  padding: '0.75rem 1rem',
-                  borderBottom: '1px solid #e5e7eb',
-                  color: '#4b5563',
-                  fontSize: '0.875rem',
-                }}>
-                  Eingeloggt als:<br/>
-                  <strong style={{ color: '#111827' }}>
-                    {session.user.email}
-                  </strong>
-                </div>
+            {open && (
+              <div className={`${styles.dropdown} animate-fade-in`}>
+                <p className={styles.dropdownItem}>
+                  Eingeloggt als<br/>
+                  <strong>{session.user.email}</strong>
+                </p>
+
+                {/* Profil-Link nur für Kunden */}
+                {role === 'customer' && (
+                  <Link
+                    to="/profile"
+                    className={styles.dropdownItem}
+                    onClick={() => setOpen(false)}
+                  >
+                    Profil
+                  </Link>
+                )}
 
                 <button
-                  onClick={() => {
-                    navigate('/profile');
-                    setDropdownOpen(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    background: 'none',
-                    border: 'none',
-                    textAlign: 'left',
-                    fontSize: '1rem',
-                    color: '#111827',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Mein Profil
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    background: 'none',
-                    border: 'none',
-                    textAlign: 'left',
-                    fontSize: '1rem',
-                    color: 'crimson',
-                    cursor: 'pointer',
-                  }}
+                  className={`${styles.dropdownItem} ${styles.signOut}`}
+                  onClick={handleSignOut}
                 >
                   Abmelden
                 </button>
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
-  );
+  )
 }

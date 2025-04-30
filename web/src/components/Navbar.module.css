@@ -1,24 +1,152 @@
-.nav {
+/* src/components/Navbar.module.css */
+
+/* Farbschema */
+:root {
+  --white   : #ffffff;
+  --bg      : #f9fafb;
+  --primary : #1f2937;
+  --accent  : #4f46e5;
+  --border  : #e5e7eb;
+  --shadow  : rgba(0, 0, 0, 0.05);
+}
+
+/* Navbar-Container */
+.navbar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 1rem 2rem;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  background: var(--white);
+  box-shadow: 0 2px 4px var(--shadow);
+  font-family: inherit;
 }
+
+/* Logo */
 .logo {
-  font-weight: bold;
-  font-size: 1.25rem;
-  color: #111;
-}
-.links > * {
-  margin-left: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
   text-decoration: none;
-  color: #111;
+  font-family: inherit;
 }
-.logout {
-  margin-left: 1rem;
+
+/* rechter Bereich */
+.right {
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+}
+
+/* ─── Links ───────────────── */
+
+/* Grundstil */
+.link {
+  position: relative;
+  margin-right: 1.5rem;
+  font-size: 1rem;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-family: inherit;
+}
+
+/* Hover-Farbe */
+.link:hover {
+  color: var(--accent);
+}
+
+/* animierte Unterstreichung (von 0 → 100%) */
+.link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 2px;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+/* Hover-Unterstreichung */
+.link:hover::after {
+  width: 100%;
+}
+
+/* Active-Link: bleibt unterstrichen und accent-farben */
+.link.active {
+  color: var(--accent);
+}
+.link.active::after {
+  width: 100%;
+}
+
+/* ─── Profil-Dropdown ───────────────── */
+
+/* Wrapper */
+.profile {
+  position: relative;
+  font-family: inherit;
+}
+
+/* Icon-Button */
+.iconButton {
   background: none;
   border: none;
-  color: #c00;
+  outline: none;
+  padding: 0;
   cursor: pointer;
+  color: var(--primary);
+  transition: color 0.2s ease;
+  font-family: inherit;
+}
+.iconButton:hover {
+  color: var(--accent);
+}
+
+/* User-Icon */
+.icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  /* Icons übernehmen automatically currentColor */
+}
+
+/* Dropdown-Panel */
+.dropdown {
+  position: absolute;
+  top: 2.5rem;
+  right: 0;
+  background: var(--white);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px var(--shadow);
+  width: 200px;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+/* Dropdown-Items */
+.dropdownItem {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: var(--primary);
+  background: none;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-family: inherit;
+}
+.dropdownItem:hover {
+  background: var(--bg);
+}
+
+/* Sign-Out-Button */
+.signOut {
+  color: #ef4444;
+  border: none;
+  width: 100%;
+  text-align: center;
+  font-family: inherit;
+}
+.signOut:hover {
+  background: rgba(239, 68, 68, 0.1);
 }
