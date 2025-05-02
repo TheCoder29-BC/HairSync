@@ -1,17 +1,18 @@
 // src/App.jsx
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Navbar                     from './components/Navbar.jsx'
-import Login                      from './pages/Login.jsx'
-import Register                   from './pages/Register.jsx'
-import RegisterBarbershop         from './pages/RegisterBarbershop.jsx'
-import Barbershops                from './pages/Barbershops.jsx'
-import ShopDetail                 from './pages/ShopDetail.jsx'
-import CustomerAppointments       from './pages/CustomerAppointments.jsx'
-import BarbershopDashboard        from './pages/BarbershopDashboard.jsx'
-import ShopAppointments           from './pages/ShopAppointments.jsx'
-import Profile                    from './pages/Profile.jsx'
-import { useAuth }                from './context/AuthContext.jsx'
+import Navbar                       from './components/Navbar.jsx'
+import Login                        from './pages/Login.jsx'
+import Register                     from './pages/Register.jsx'
+import RegisterBarbershop           from './pages/RegisterBarbershop.jsx'
+import Barbershops                  from './pages/Barbershops.jsx'
+import ShopDetail                   from './pages/ShopDetail.jsx'
+import CustomerAppointments         from './pages/CustomerAppointments.jsx'
+import BarbershopDashboard          from './pages/BarbershopDashboard.jsx'
+import ShopAppointments             from './pages/ShopAppointments.jsx'
+import BarbershopSchedule           from './pages/BarbershopSchedule.jsx'  // ← neu
+import Profile                      from './pages/Profile.jsx'
+import { useAuth }                  from './context/AuthContext.jsx'
 
 function RequireAuth({ children, role }) {
   const { session } = useAuth()
@@ -86,12 +87,16 @@ export default function App() {
             </RequireAuth>
           }
         />
-        <Route 
-          path="/shop-appointments" element={
+        {/* neuer Dienstplan-Bereich */}
+        <Route
+          path="/barbershop-schedule"
+          element={
             <RequireAuth role="barbershop">
-              <ShopAppointments /></RequireAuth>
+              <BarbershopSchedule />
+            </RequireAuth>
           }
         />
+
         {/* fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

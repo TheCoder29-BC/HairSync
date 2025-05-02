@@ -1,0 +1,52 @@
+.wrapper {
+  padding: 1rem;
+}
+.title {
+  margin-bottom: 0.5rem;
+}
+.newRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.newRow select,
+.newRow input {
+  padding: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.addBtn {
+  background: #5c4fff;
+  color: white;
+  border: none;
+  padding: 0 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+}
+.loading {
+  padding: 1rem;
+  text-align: center;
+}
+
+/* ↓ neu: roter Löschen-Button ↓ */
+.deleteBtn {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.deleteBtn:hover {
+  background-color: #c53030;
+}

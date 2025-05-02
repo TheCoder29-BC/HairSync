@@ -1,12 +1,16 @@
 :root {
+  /* Farbschema */
   --bg       : #f9fafb;
   --white    : #ffffff;
   --primary  : #1f2937;
   --accent   : #4f46e5;
   --border   : #e5e7eb;
-  --shadow   : rgba(0, 0, 0, 0.05);
+  --shadow   : rgba(0,0,0,0.05);
+  --danger   : #e53e3e; /* Rot für Löschen */
+  --warn     : #dd6b20; /* Orange für Sperren */
 }
 
+/* ───────── Wrapper & Card ───────── */
 .wrapper {
   font-family: system-ui, sans-serif;
   background: var(--bg);
@@ -16,7 +20,6 @@
   min-height: 100vh;
   color: var(--primary);
 }
-
 .card {
   display: grid;
   grid-template-columns: 300px 1fr;
@@ -24,38 +27,55 @@
   background: var(--white);
   border-radius: 0.75rem;
   box-shadow: 0 8px 24px var(--shadow);
-  width: 90%;
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1600px;
   padding: 1.5rem;
+  box-sizing: border-box;
 }
 
+/* ───────── Linke Spalte ───────── */
 .left {
   border-right: 1px solid var(--border);
   padding: 1.5rem;
   text-align: center;
 }
 
+/* ───────── Rechte Spalte ───────── */
 .right {
   padding: 1.5rem;
 }
 
+/* ───────── Überschriften & Texte ───────── */
 .title {
   font-size: 1.5rem;
   margin-bottom: 1rem;
 }
+.success {
+  padding: 0.5rem 1rem;
+  background: rgba(79,70,229,0.1);
+  color: var(--accent);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+.loading {
+  text-align: center;
+  color: var(--primary);
+}
 
+/* ───────── Shop-Basisdaten-Form ───────── */
 .form {
   display: grid;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
-
-.input, .select {
+.input,
+.select {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
-
 .button {
   padding: 0.75rem 1rem;
   background: var(--accent);
@@ -65,174 +85,136 @@
   cursor: pointer;
 }
 
-.table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 0.25rem;
-  margin-bottom: 1.5rem;
+/* ───────── Thumbnail (Logo & Shop-Bild) ───────── */
+.thumbnail {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
+  margin: 8px auto;
+  border-radius: 4px;
 }
 
-.list {
-  list-style: none;
-  padding: 0;
-  margin-bottom: 1.5rem;
-}
-
-.list li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.removeBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.success {
-  padding: 0.5rem 1rem;
-  background: rgba(79, 70, 229, 0.1);
-  color: var(--accent);
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.loading {
-  text-align: center;
-  color: var(--primary);
-}
-
-:root {
-  --bg       : #f9fafb;
-  --white    : #ffffff;
-  --primary  : #1f2937;
-  --accent   : #4f46e5;
-  --border   : #e5e7eb;
-  --shadow   : rgba(0, 0, 0, 0.05);
-}
-
-.wrapper {
-  font-family: system-ui, sans-serif;
-  background: var(--bg);
-  padding: 2rem;
-  display: flex;
-  justify-content: center;
-  min-height: 100vh;
-  color: var(--primary);
-}
-
-.card {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 2rem;
-  background: var(--white);
-  border-radius: 0.75rem;
-  box-shadow: 0 8px 24px var(--shadow);
-  width: 90%;
-  max-width: 1400px;
-  padding: 1.5rem;
-}
-
-.left {
-  border-right: 1px solid var(--border);
-  padding: 1.5rem;
-  text-align: center;
-}
-
-.right {
-  padding: 1.5rem;
-}
-
-.title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.form {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.input, .select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-}
-
-.button {
-  padding: 0.75rem 1rem;
-  background: var(--accent);
-  color: var(--white);
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-}
-
-.table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 0.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.list {
-  list-style: none;
-  padding: 0;
-  margin-bottom: 1.5rem;
-}
-
-.list li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.removeBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.success {
-  padding: 0.5rem 1rem;
-  background: rgba(79, 70, 229, 0.1);
-  color: var(--accent);
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.loading {
-  text-align: center;
-  color: var(--primary);
-}
-
-/* ───────── Öffnungszeiten-Grid ───────────────────────────────── */
+/* ───────── Öffnungszeiten-Grid (4 Spalten) ───────── */
 .hoursGrid {
   display: grid;
-  grid-template-columns: 80px 1fr 1fr;
+  /* 4 Spalten: Tag | Status | Öffnet | Schließt */
+  grid-template-columns: 80px 120px 1fr 1fr;
   gap: 0.5rem 1rem;
   align-items: center;
   margin-bottom: 1rem;
 }
-
 .gridHeader {
   font-weight: 600;
   padding-bottom: 0.25rem;
 }
-
 .gridCell {
   padding-top: 0.25rem;
 }
-
-.timeInput {
+.timeInput, .select {
   width: 100%;
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 0.375rem;
+  box-sizing: border-box;
 }
+
+/* ───────── Leistungen & Preise (Tabelle) ───────── */
+.servicesTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+  margin-bottom: 1rem;
+}
+.servicesTable th,
+.servicesTable td {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--white);
+  vertical-align: middle;
+}
+.servicesTable th {
+  font-weight: 600;
+  text-align: left;
+}
+.servicesTable td:first-child {
+  width: 50%;
+}
+.servicesTable td:nth-child(2) {
+  width: 20%;
+}
+.servicesTable td:nth-child(3) {
+  width: 30%;
+  text-align: right;
+}
+.servicesTable input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  box-sizing: border-box;
+}
+/* Speichern-Button */
+.saveBtn {
+  background: var(--accent);
+  color: var(--white);
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+.saveBtn:hover { background: #4338ca; }
+/* Löschen-Button */
+.deleteBtn {
+  background: var(--danger);
+  color: var(--white);
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+.deleteBtn:hover { background: #c53030; }
+
+/* ───────── Barber hinzufügen (Form und Button) ───────── */
+.barberForm {
+  display: grid;
+  grid-template-columns: repeat(3,1fr) auto;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.createBtn {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--white);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+/* ───────── Barber-Verwaltung ───────── */
+.barberList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.barberListItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.barberActions {
+  display: flex;
+  gap: 0.5rem;
+}
+/* Sperren-Button */
+.lockBtn {
+  background: var(--warn);
+  color: var(--white);
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+.lockBtn:hover { background: #c05621; }
