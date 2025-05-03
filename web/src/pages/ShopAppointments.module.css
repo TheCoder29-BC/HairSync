@@ -1,42 +1,57 @@
-/* src/pages/ShopAppointments.module.css */
+:root {
+  --bg:           #f5f5f5;
+  --white:        #ffffff;
+  --primary:      #1f2937;
+  --accent:       #4f46e5;
+  --cancel-red:   #ef4444;
+  --border:       #e5e7eb;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
 .wrapper {
-  max-width: 800px;
+  max-width: 5000px;
   margin: 2rem auto;
-  padding: 0 1rem;
+  padding: 0 5rem;
 }
 
 .header {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem;
+  color: var(--primary);
 }
 
+/* 1) Termin-Grid: drei Spalten */
 .list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
   list-style: none;
+  margin: 0;
+  padding: 0;
+}
+@media (max-width: 900px) {
+  .list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* ----- Neue Card-Optik ----- */
 .card {
   display: flex;
-  flex-direction: column;      /* vertikale Anordnung */
-  background: #ffffff;         /* weißer Hintergrund */
-  border-radius: 0.75rem;      /* abgerundete Ecken */
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05); /* sanfter Schatten */
-  padding: 1rem;               /* Innenabstand */
-  transition: transform .2s;   /* Hover-Effekt */
+  flex-direction: column;
+  background: var(--white);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px var(--shadow-color);
+  transition: transform .2s;
 }
-
 .card:hover {
   transform: translateY(-4px);
-}
-
-/* Alte border-bottom entfernen */
-.card:not(:last-child) {
-  margin-bottom: 0;            /* Abstand wird über .list gap geregelt */
-  border-bottom: none;
 }
 
 .info {
@@ -44,36 +59,86 @@
   gap: .5rem;
 }
 
-.confirmBtn {
-  background: #4f46e5;
-  color: white;
-  border: none;
-  padding: .5rem 1rem;
-  border-radius: .375rem;
-  cursor: pointer;
-  transition: background .2s;
+.actions {
   margin-top: 1rem;
-}
-.confirmBtn:hover {
-  background: #4338ca;
+  display: flex;
+  gap: .75rem;
 }
 
+.confirmBtn,
 .removeBtn {
-  background: #ef4444;
-  color: white;
+  background: var(--accent);
+  color: var(--white);
   border: none;
   padding: .5rem 1rem;
   border-radius: .375rem;
   cursor: pointer;
   transition: background .2s;
-  margin-top: .5rem;
+  min-width: 120px;
+  text-align: center;
+  font-weight: 500;
 }
-.removeBtn:hover {
-  background: #dc2626;
+.confirmBtn { background: var(--accent); }
+.confirmBtn:hover { background: #4338ca; }
+.removeBtn { background: var(--cancel-red); }
+.removeBtn:hover { background: #dc2626; }
+
+.pastLabel {
+  color: #e11d48;
+  margin-top: .5rem;
+  font-size: .85rem;
 }
 
 .message {
   text-align: center;
   margin: 2rem;
-  color: #1f2937;
+  color: var(--primary);
+}
+
+/* Filter-Dropdown */
+.filter {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.filter label {
+  font-weight: 600;
+  color: var(--primary);
+}
+.filter select {
+  padding: .5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  background: var(--white);
+}
+
+/* Chart-Grid nebeneinander */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+.chartSection {
+  background: var(--white);
+  padding: 1rem;
+  border-radius: .75rem;
+  box-shadow: 0 4px 16px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  height: 300px; /* gleiche Höhe */
+}
+.chartSection h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  color: var(--primary);
+}
+.chartSection canvas {
+  flex: 1;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
 }
