@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase }                   from '../supabase/client.js'
 import styles                         from './CustomerAppointments.module.css'
 
-// Platzhalter‐ und Shop‐Bilder
+// Bilder für Fallback
 import placeholder  from '../assets/placeholder.jpg'
 import shop1        from '../assets/barbershops/shop1.jpg'
 import shop2        from '../assets/barbershops/shop2.jpg'
@@ -23,7 +23,6 @@ import shop15       from '../assets/barbershops/shop15.jpg'
 import shop16       from '../assets/barbershops/shop16.jpg'
 import shop17       from '../assets/barbershops/shop17.jpg'
 import shop18       from '../assets/barbershops/shop18.jpg'
-import shop19       from '../assets/barbershops/shop19.jpg'
 
 const IMAGE_MAP = {
   'barber king':          shop1,
@@ -45,7 +44,6 @@ const IMAGE_MAP = {
   'münchen style lounge': shop16,
   'berlin barber shop':   shop17,
   'hair':                 shop18,
-  // 'dein 19. name':      shop19,
 }
 
 export default function CustomerAppointments() {
@@ -57,27 +55,28 @@ export default function CustomerAppointments() {
   const [error,         setError]       = useState(null)
 
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       setLoading(true)
-      const { data:{ session }, error: sessErr } = await supabase.auth.getSession()
+      // Session holen
+      const { data: { session }, error: sessErr } = await supabase.auth.getSession()
       if (sessErr || !session?.user) {
         setError('Bitte einloggen, um Termine zu sehen.')
         setLoading(false)
         return
       }
-      const userId = session.user.id
 
-      const [shopsRes, barbersRes, servicesRes, apptsRes] = await Promise.all([
+      const userId = session.user.id
+      // parallel Daten laden
+      const [ shopsRes, barbersRes, servicesRes, apptsRes ] = await Promise.all([
         supabase.from('barbershops').select('id, name, image_url'),
         supabase.from('barbers').select('id, full_name, barbershop_id'),
-        supabase.from('services').select('id, name'),
+        supabase.from('shop_services').select('id, name'),
         supabase
           .from('appointments')
           .select('*')
           .eq('user_id', userId)
           .order('appointment_time', { ascending: true }),
       ])
-
       if (shopsRes.error || barbersRes.error || servicesRes.error || apptsRes.error) {
         setError('Fehler beim Laden der Daten.')
       } else {
@@ -90,16 +89,19 @@ export default function CustomerAppointments() {
     })()
   }, [])
 
+  // Termin stornieren
   async function handleCancel(id) {
-    const { error: cancelErr } = await supabase
+    const { error } = await supabase
       .from('appointments')
       .update({ status: 'canceled' })
       .eq('id', id)
+    if (error) setError('Konnte nicht stornieren.')
+    else setAppointments(a => a.map(t => t.id === id ? { ...t, status:'canceled' } : t))
+  }
 
-    if (cancelErr) setError('Konnte Termin nicht stornieren.')
-    else setAppointments(a =>
-      a.map(t => t.id === id ? { ...t, status:'canceled' } : t)
-    )
+  // Abgelaufenen Termin ausblenden
+  function handleRemove(id) {
+    setAppointments(a => a.filter(t => t.id !== id))
   }
 
   if (loading) return <p className={styles.message}>…Lade Termine</p>
@@ -113,15 +115,15 @@ export default function CustomerAppointments() {
       <h1 className={styles.header}>Meine Termine</h1>
       <ul className={styles.list}>
         {appointments.map(a => {
-          const barber  = barbers.find(b => b.id === a.barber_id) || {}
-          const shop    = shops.find(s => s.id === barber.barbershop_id) || {}
-          const service = services.find(s => s.id === a.service_id)      || {}
+          const barber  = barbers.find(b => b.id === a.barber_id)           || {}
+          const shop    = shops.find(s => s.id === barber.barbershop_id)    || {}
+          const service = services.find(s => s.id === a.service_id)         || {}
           const dt      = new Date(a.appointment_time)
           const date    = dt.toLocaleDateString('de-DE',{ day:'2-digit',month:'2-digit',year:'numeric' })
           const time    = dt.toLocaleTimeString('de-DE',{ hour:'2-digit',minute:'2-digit' })
           const isPast  = dt.getTime() < Date.now()
 
-          // Bild‐Quelle: externes Bild hat Vorrang, sonst Mapping, sonst Platzhalter
+          // Fallback-Bild
           const key    = shop.name?.toLowerCase().trim() || ''
           const imgSrc = shop.image_url && !shop.image_url.includes('placeholder.com')
             ? shop.image_url
@@ -129,14 +131,10 @@ export default function CustomerAppointments() {
 
           return (
             <li key={a.id} className={styles.card}>
-              <img
-                src={imgSrc}
-                alt={shop.name || 'Barbershop'}
-                className={styles.avatar}
-              />
+              <img src={imgSrc} alt={shop.name || 'Barbershop'} className={styles.avatar} />
 
               <div className={styles.info}>
-                <strong className={styles.shopName}>{shop.name}</strong>
+                <div className={styles.shopName}>{shop.name}</div>
                 <div className={styles.when}>
                   {date} <span className={styles.clock}>⏰ {time}</span>
                 </div>
@@ -151,20 +149,26 @@ export default function CustomerAppointments() {
                 </div>
                 {isPast && (
                   <div className={styles.pastLabel}>
-                    Dieser Termin liegt in der Vergangenheit
+                    Termin liegt in der Vergangenheit
                   </div>
                 )}
               </div>
 
               <div className={styles.actions}>
-                {!isPast && (
-                  <>
-                    <button className={styles.reschedule}>Umbuchen</button>
-                    <button
-                      className={styles.cancel}
-                      onClick={() => handleCancel(a.id)}
-                    >Stornieren</button>
-                  </>
+                {isPast ? (
+                  <button
+                    className={styles.cancel}
+                    onClick={() => handleRemove(a.id)}
+                  >
+                    Aus der Ansicht entfernen
+                  </button>
+                ) : (
+                  <button
+                    className={styles.cancel}
+                    onClick={() => handleCancel(a.id)}
+                  >
+                    Stornieren
+                  </button>
                 )}
               </div>
             </li>

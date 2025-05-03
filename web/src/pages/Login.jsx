@@ -71,6 +71,13 @@ export default function Login() {
           />
         </div>
 
+        {/* Passwort-vergessen-Link */}
+        <p className={styles.forgot}>
+          <Link to="/forgot-password" className={styles.link}>
+            Passwort vergessen?
+          </Link>
+        </p>
+
         <button type="submit" className={styles.button}>
           Einloggen
         </button>

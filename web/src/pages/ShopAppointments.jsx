@@ -19,12 +19,12 @@ export default function ShopAppointments() {
       setLoading(true)
       try {
         // 1) Shop‐ID holen
-        const { data: shop } = await supabase
+        const { data: shop, error: shopErr } = await supabase
           .from('barbershops')
           .select('id')
           .eq('owner_user_id', session.user.id)
           .maybeSingle()
-        if (!shop) throw new Error('Kein Shop gefunden')
+        if (shopErr || !shop) throw new Error('Kein Shop gefunden')
         const shopId = shop.id
 
         // 2) parallel alle Daten laden
@@ -44,12 +44,14 @@ export default function ShopAppointments() {
             .select('id, full_name')
             .eq('barbershop_id', shopId),
           supabase
-            .from('services')
-            .select('id, name'),
+            .from('shop_services')
+            .select('id, name')
+            .eq('barbershop_id', shopId),
           supabase
             .from('profiles')
             .select('id, first_name, last_name, phone'),
         ])
+
         if (apptsErr || barbersErr || servicesErr || profilesErr) {
           throw apptsErr || barbersErr || servicesErr || profilesErr
         }
@@ -66,6 +68,11 @@ export default function ShopAppointments() {
       }
     })()
   }, [session])
+
+  // entfernt einen Termin nur aus der aktuellen Ansicht
+  function removeFromView(id) {
+    setAppts(a => a.filter(x => x.id !== id))
+  }
 
   async function handleConfirm(id) {
     const { error } = await supabase
@@ -84,25 +91,28 @@ export default function ShopAppointments() {
   if (error)   return <p className={styles.message} style={{ color:'crimson' }}>{error}</p>
   if (!appts.length) return <p className={styles.message}>Keine Termine.</p>
 
+  const now = new Date()
+
   return (
     <div className={styles.wrapper}>
       <h1 className={styles.header}>Shop-Termine</h1>
       <ul className={styles.list}>
         {appts.map(a => {
-          const dt   = new Date(a.appointment_time)
-          const day  = dt.toLocaleDateString('de-DE',{ day:'2-digit',month:'2-digit',year:'numeric' })
-          const time = dt.toLocaleTimeString  ('de-DE',{ hour:'2-digit',minute:'2-digit'})
+          const dt       = new Date(a.appointment_time)
+          const isPast   = dt < now
+          const day      = dt.toLocaleDateString('de-DE',{ day:'2-digit',month:'2-digit',year:'numeric' })
+          const time     = dt.toLocaleTimeString  ('de-DE',{ hour:'2-digit',minute:'2-digit'})
 
-          const barberObj  = barbers.find(b => b.id === a.barber_id)    || {}
-          const serviceObj = services.find(s => s.id === a.service_id)  || {}
-          const profObj    = profiles.find(p => p.id === a.user_id)     || {}
+          const barberObj  = barbers.find(b => b.id === a.barber_id)   || {}
+          const serviceObj = services.find(s => s.id === a.service_id) || {}
+          const profObj    = profiles.find(p => p.id === a.user_id)    || {}
 
           const customer = profObj.first_name || profObj.last_name
             ? `${profObj.first_name} ${profObj.last_name}`.trim()
             : '–'
           const phone = profObj.phone || '–'
 
-          // Status-Icon je nach Status
+          // Status-Icon
           const statusIcon = a.status === 'pending'
             ? '❓'
             : a.status === 'confirmed'
@@ -121,15 +131,31 @@ export default function ShopAppointments() {
                   <strong>Status:</strong>{' '}
                   <em>{a.status}</em> {statusIcon}
                 </div>
+                {isPast && (
+                  <div style={{ color:'crimson', marginTop:'0.5rem' }}>
+                    Termin liegt in der Vergangenheit
+                  </div>
+                )}
               </div>
-              {a.status === 'pending' && (
-                <button
-                  className={styles.confirmBtn}
-                  onClick={() => handleConfirm(a.id)}
-                >
-                  Bestätigen
-                </button>
-              )}
+
+              <div className={styles.actions}>
+                {a.status === 'pending' && !isPast && (
+                  <button
+                    className={styles.confirmBtn}
+                    onClick={() => handleConfirm(a.id)}
+                  >
+                    Bestätigen
+                  </button>
+                )}
+                {isPast && (
+                  <button
+                    className={styles.removeBtn}
+                    onClick={() => removeFromView(a.id)}
+                  >
+                    Aus der Ansicht entfernen
+                  </button>
+                )}
+              </div>
             </li>
           )
         })}

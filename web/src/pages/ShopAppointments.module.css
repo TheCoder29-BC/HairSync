@@ -1,47 +1,79 @@
 /* src/pages/ShopAppointments.module.css */
 .wrapper {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-  }
-  .header {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  .list {
-    display: grid;
-    /* zwei gleich breite Spalten (ab 600px Breite), sonst 1 Spalte */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem; /* Abstand zwischen den Items */
-    padding: 0;
-    list-style: none;
-  }
-  .card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  .info {
-    display: grid;
-    gap: .25rem;
-  }
-  .confirmBtn {
-    background: #4f46e5;
-    color: white;
-    border: none;
-    padding: .5rem 1rem;
-    border-radius: .375rem;
-    cursor: pointer;
-    transition: background .2s;
-  }
-  .confirmBtn:hover {
-    background: #4338ca;
-  }
-  .message {
-    text-align: center;
-    margin: 2rem;
-    color: #1f2937;
-  }
-  
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.header {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+/* ----- Neue Card-Optik ----- */
+.card {
+  display: flex;
+  flex-direction: column;      /* vertikale Anordnung */
+  background: #ffffff;         /* weißer Hintergrund */
+  border-radius: 0.75rem;      /* abgerundete Ecken */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05); /* sanfter Schatten */
+  padding: 1rem;               /* Innenabstand */
+  transition: transform .2s;   /* Hover-Effekt */
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* Alte border-bottom entfernen */
+.card:not(:last-child) {
+  margin-bottom: 0;            /* Abstand wird über .list gap geregelt */
+  border-bottom: none;
+}
+
+.info {
+  display: grid;
+  gap: .5rem;
+}
+
+.confirmBtn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: .5rem 1rem;
+  border-radius: .375rem;
+  cursor: pointer;
+  transition: background .2s;
+  margin-top: 1rem;
+}
+.confirmBtn:hover {
+  background: #4338ca;
+}
+
+.removeBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: .5rem 1rem;
+  border-radius: .375rem;
+  cursor: pointer;
+  transition: background .2s;
+  margin-top: .5rem;
+}
+.removeBtn:hover {
+  background: #dc2626;
+}
+
+.message {
+  text-align: center;
+  margin: 2rem;
+  color: #1f2937;
+}

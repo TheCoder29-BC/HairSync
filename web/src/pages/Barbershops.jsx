@@ -49,8 +49,11 @@ const IMAGE_MAP = {
   // 'dein 19. name hier':    shop19,
 }
 
-// 3) Dein lokaler Platzhalter
+// 3) Dein lokaler Placeholder für das große Bild
 import placeholder from '../assets/placeholder.jpg'
+
+// 4) Neuer Placeholder für das Logo-Avatar
+import placeholderLogo from '../assets/placeholder_logo.jpg'
 
 export default function Barbershops() {
   const [shops,   setShops]   = useState([])
@@ -62,7 +65,8 @@ export default function Barbershops() {
       setLoading(true)
       const { data, error } = await supabase
         .from('barbershops')
-        .select('id, name, image_url')
+        .select('id, name, logo_url, image_url')
+        .order('name')
       if (error) {
         console.error('Fehler beim Laden der Barbershops:', error)
         setError(error.message)
@@ -80,27 +84,26 @@ export default function Barbershops() {
 
   return (
     <div style={{ maxWidth:1200, margin:'2rem auto', padding:'0 1rem' }}>
-      <h1 style={{ fontFamily: 'inherit' }}>Barbershops</h1>
+      <h1 style={{ fontFamily: 'inherit', textAlign:'center' }}>Barbershops</h1>
       <div className={styles.cardGrid}>
         {shops.map(shop => {
-          // 1) Roh-Titel aus der DB
           const rawTitle = shop.name ?? '– Unbekannt –'
-          // 2) trim + Apostroph-Normalisierung
           const title    = rawTitle.trim().replace(/’/g, "'")
           const key      = title.toLowerCase()
 
-          // 3) Fallback-Logik:
-          //    a) echte DB-URL, falls nicht leer UND kein generischer Platzhalter
-          //    b) lokales Mapping IMAGE_MAP[key]
-          //    c) dein importierter placeholder
+          // Großes Header-Bild
           const hasCustomImage =
             shop.image_url &&
             shop.image_url.trim() !== '' &&
             !shop.image_url.includes('placeholder.com')
-
           const imgSrc = hasCustomImage
             ? shop.image_url
             : (IMAGE_MAP[key] || placeholder)
+
+          // Logo-Avatar oder placeholderLogo
+          const avatarSrc = shop.logo_url && shop.logo_url.trim() !== ''
+            ? shop.logo_url
+            : placeholderLogo
 
           return (
             <Link
@@ -111,9 +114,16 @@ export default function Barbershops() {
               <img
                 src={imgSrc}
                 alt={title}
-                style={{ objectFit:'cover', width:'100%', height:200 }}
+                className={styles.cardImage}
               />
-              <h3 style={{ fontFamily: 'inherit' }}>{title}</h3>
+              <div className={styles.cardHeader}>
+                <img
+                  src={avatarSrc}
+                  alt={`${title} Logo`}
+                  className={styles.avatar}
+                />
+                <h3 className={styles.cardTitle}>{title}</h3>
+              </div>
             </Link>
           )
         })}

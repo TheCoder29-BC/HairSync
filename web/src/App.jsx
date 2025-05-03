@@ -3,6 +3,8 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar                       from './components/Navbar.jsx'
 import Login                        from './pages/Login.jsx'
+import ForgotPassword               from './pages/ForgotPassword.jsx'
+import ResetPassword                from './pages/ResetPassword.jsx'
 import Register                     from './pages/Register.jsx'
 import RegisterBarbershop           from './pages/RegisterBarbershop.jsx'
 import Barbershops                  from './pages/Barbershops.jsx'
@@ -10,7 +12,7 @@ import ShopDetail                   from './pages/ShopDetail.jsx'
 import CustomerAppointments         from './pages/CustomerAppointments.jsx'
 import BarbershopDashboard          from './pages/BarbershopDashboard.jsx'
 import ShopAppointments             from './pages/ShopAppointments.jsx'
-import BarbershopSchedule           from './pages/BarbershopSchedule.jsx'  // ← neu
+import BarbershopSchedule           from './pages/BarbershopSchedule.jsx'
 import Profile                      from './pages/Profile.jsx'
 import { useAuth }                  from './context/AuthContext.jsx'
 
@@ -28,15 +30,19 @@ export default function App() {
   return (
     <>
       <Navbar />
+
       <Routes>
+        {/* Standard-Weiterleitung */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* public */}
+        {/* Public */}
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password"  element={<ResetPassword  />} />
         <Route path="/register" element={<Register />} />
         <Route path="/register-barbershop" element={<RegisterBarbershop />} />
 
-        {/* customer */}
+        {/* Customer-Bereich */}
         <Route
           path="/barbershops"
           element={
@@ -70,7 +76,7 @@ export default function App() {
           }
         />
 
-        {/* barbershop */}
+        {/* Barbershop-Bereich */}
         <Route
           path="/barbershop-dashboard"
           element={
@@ -87,7 +93,6 @@ export default function App() {
             </RequireAuth>
           }
         />
-        {/* neuer Dienstplan-Bereich */}
         <Route
           path="/barbershop-schedule"
           element={
@@ -97,7 +102,7 @@ export default function App() {
           }
         />
 
-        {/* fallback */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>

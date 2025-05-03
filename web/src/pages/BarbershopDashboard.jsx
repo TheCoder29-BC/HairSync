@@ -23,7 +23,11 @@ export default function BarbershopDashboard() {
 
   // ── Barber-Verwaltung ───────────────────────
   const [barbers, setBarbers]     = useState([]);
-  const [newBarber, setNewBarber] = useState({full_name: "",email:     "",password:  ""});
+  const [newBarber, setNewBarber] = useState({
+    full_name: "",
+    email:     "",
+    password:  ""
+  });
 
   // ── UI-State ─────────────────────────────────
   const [loading, setLoading] = useState(true);
@@ -68,14 +72,13 @@ export default function BarbershopDashboard() {
     })();
   }, [session, navigate]);
 
-  // ── Öffnungszeiten laden ──────────────────────
+  // ── Öffnungszeiten laden & speichern ────────────────────────────
   const reloadHours = async id => {
     const { data, error } = await supabase
       .from("opening_hours")
       .select("*")
       .eq("barbershop_id", id)
       .order("day_of_week");
-
     if (!error) {
       setOpeningHours(
         defaultHours.map(d => {
@@ -85,11 +88,9 @@ export default function BarbershopDashboard() {
       );
     }
   };
-
   const saveOpeningHours = async () => {
     if (!shop) return;
     setLoading(true);
-
     const payload = openingHours.map(r => ({
       id:            r.id ?? undefined,
       barbershop_id: shop.id,
@@ -98,21 +99,22 @@ export default function BarbershopDashboard() {
       close_time:    r.is_closed ? null : r.close_time || null,
       is_closed:     r.is_closed
     }));
-
     const { error } = await supabase
       .from("opening_hours")
       .upsert(payload, {
-        onConflict: ["barbershop_id", "day_of_week"],
-        returning:  "minimal"
+        onConflict: ["barbershop_id","day_of_week"],
+        returning: "minimal"
       });
-
-    setMessage(error ? "Fehler beim Speichern der Öffnungszeiten." : "Öffnungszeiten gespeichert!");
+    setMessage(error
+      ? "Fehler beim Speichern der Öffnungszeiten."
+      : "Öffnungszeiten gespeichert!"
+    );
     if (!error) await reloadHours(shop.id);
-    setTimeout(() => setMessage(""), 3000);
+    setTimeout(()=>setMessage(""), 3000);
     setLoading(false);
   };
 
-  // ── Services laden ────────────────────────────
+  // ── Services laden & speichern ────────────────────────────
   const reloadServices = async id => {
     const { data, error } = await supabase
       .from("shop_services")
@@ -120,7 +122,6 @@ export default function BarbershopDashboard() {
       .eq("barbershop_id", id);
     if (!error) setServices(data);
   };
-
   const saveService = async entry => {
     await supabase
       .from("shop_services")
@@ -135,7 +136,6 @@ export default function BarbershopDashboard() {
       });
     reloadServices(shop.id);
   };
-
   const removeService = async id => {
     if (!confirm("Service löschen?")) return;
     await supabase
@@ -144,99 +144,88 @@ export default function BarbershopDashboard() {
       .eq("id", id);
     setServices(s => s.filter(x => x.id !== id));
   };
-
   const addService = async () => {
     const { data, error } = await supabase
       .from("shop_services")
       .insert({ barbershop_id: shop.id, name: "", price: 0 })
       .select()
       .single();
-    if (!error) setServices(s => [...s, data]);
+    if (!error) setServices(s=>[...s,data]);
   };
 
- // ── Barbers laden (Name + E-Mail) ─────────────────────────────
-const reloadBarbers = async shopId => {
-  const { data, error } = await supabase
-    .from("barbers")
-    .select("id, full_name, email, is_active")
-    .eq("barbershop_id", shopId)
-    .order("full_name");
-
-  if (error) {
-    console.error("reloadBarbers error:", error);
-    return;
-  }
-  setBarbers(data);
-};
-
-// ── Neuen Barber anlegen ─────────────────────
-const handleAddBarber = async e => {
-  e.preventDefault()
-  setLoading(true)
-  try {
-    const payload = {
-      full_name:     newBarber.full_name,
-      email:         newBarber.email,
-      password_hash: newBarber.password,  // oder dein Feldname
-      barbershop_id: shop.id,
-      is_active:     true
-    }
-
-    // 1) Edge Function oder Direkt-Insert
-    // (hier am Beispiel eines direkten Inserts in die Tabelle "barbers")
+  // ── Barbers laden (Name + E-Mail direkt aus barbers.email) ────────────────────────────
+  const reloadBarbers = async shopId => {
     const { data, error } = await supabase
       .from("barbers")
-      .insert(payload)
-      .select()
-      .single()
-    if (error) throw error
-
-    // 2) Barber-Liste neu laden
-    await reloadBarbers(shop.id)
-
-    // 3) Formular zurücksetzen
-    setNewBarber({ full_name: "", email: "", password: "" })
-  } catch (err) {
-    alert("Fehler: " + err.message)
-  } finally {
-    setLoading(false)
-  }
-}
-
-  // ── Barber sperren/löschen ────────────────────
-  const toggleBarberActive = async (id, act) => {
-    await supabase
-      .from("barbers")
-      .update({ is_active: act })
-      .eq("id", id);
-    reloadBarbers(shop.id);
+      .select("id,full_name,email,is_active")
+      .eq("barbershop_id",shopId)
+      .order("full_name");
+    if (error) console.error("reloadBarbers:",error);
+    else       setBarbers(data);
   };
 
+  // ── Neuen Barber anlegen ────────────────────────────
+  const handleAddBarber = async e => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const payload = {
+        full_name:     newBarber.full_name,
+        email:         newBarber.email,
+        password_hash: newBarber.password,
+        barbershop_id: shop.id,
+        is_active:     true
+      };
+      // falls du die Edge-Function verwenden willst, tausche unten .insert gegen:
+      // const { data, error } = await supabase.functions.invoke("create-barber", {body:JSON.stringify(payload)});
+      const { data, error } = await supabase
+        .from("barbers")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw error;
+
+      await reloadBarbers(shop.id);
+      setNewBarber({ full_name:"", email:"", password:"" });
+    } catch (err) {
+      alert("Fehler: "+err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Barber sperren / löschen ────────────────────────────
+  const toggleBarberActive = async (id,act) => {
+    await supabase
+      .from("barbers")
+      .update({ is_active:act })
+      .eq("id",id);
+    reloadBarbers(shop.id);
+  };
   const deleteBarber = async id => {
     if (!confirm("Barber wirklich löschen?")) return;
     await supabase
       .from("barbers")
       .delete()
-      .eq("id", id);
+      .eq("id",id);
     reloadBarbers(shop.id);
   };
 
-  // ── Shop-Daten speichern ─────────────────────
+  // ── Shop-Daten speichern ────────────────────────────
   const saveShopDetails = async e => {
     e.preventDefault();
     if (!shop) return;
     setLoading(true);
-
-    let logo_url  = shop.logo_url;
-    let image_url = shop.image_url;
+    let logo_url = shop.logo_url;
+    let image_url= shop.image_url;
 
     if (logoFile) {
       const ext  = logoFile.name.split(".").pop();
       const path = `${shop.id}/logo_${Date.now()}.${ext}`;
-      const { data: up } = await supabase
+      const { data:up } = await supabase
         .storage
         .from("shop-logos")
-        .upload(path, logoFile, { upsert: true });
+        .upload(path,logoFile,{upsert:true});
       logo_url = (await supabase
         .storage
         .from("shop-logos")
@@ -247,10 +236,10 @@ const handleAddBarber = async e => {
     if (imgFile) {
       const ext  = imgFile.name.split(".").pop();
       const path = `${shop.id}/img_${Date.now()}.${ext}`;
-      const { data: up } = await supabase
+      const { data:up } = await supabase
         .storage
         .from("shop-images")
-        .upload(path, imgFile, { upsert: true });
+        .upload(path,imgFile,{upsert:true});
       image_url = (await supabase
         .storage
         .from("shop-images")
@@ -260,16 +249,19 @@ const handleAddBarber = async e => {
 
     const { error } = await supabase
       .from("barbershops")
-      .update({ name: shopName, logo_url, image_url })
-      .eq("id", shop.id);
+      .update({ name:shopName, logo_url, image_url })
+      .eq("id",shop.id);
 
-    setMessage(error ? "Speichern fehlgeschlagen." : "Shop-Daten gespeichert!");
+    setMessage(error
+      ? "Speichern fehlgeschlagen."
+      : "Shop-Daten gespeichert!"
+    );
     if (!error) {
-      setShop({ ...shop, name: shopName, logo_url, image_url });
+      setShop({...shop, name:shopName, logo_url, image_url});
       setLogoFile(null);
       setImgFile(null);
     }
-    setTimeout(() => setMessage(""), 3000);
+    setTimeout(()=>setMessage(""),3000);
     setLoading(false);
   };
 
@@ -284,8 +276,8 @@ const handleAddBarber = async e => {
         {/* ─── Linke Spalte: Shop-Daten ────────────── */}
         <div className={styles.left}>
           <h1 className={styles.title}>Willkommen, {shop.name}!</h1>
-          {logoPreview && <img src={logoPreview} alt="Logo" className={styles.thumbnail} />}
-          {imgPreview  && <img src={imgPreview } alt="Shop" className={styles.thumbnail} />}
+          {logoPreview && <img src={logoPreview} alt="Logo" className={styles.thumbnail}/>}
+          {imgPreview  && <img src={imgPreview } alt="Shop" className={styles.thumbnail}/>}
 
           <h2 className={styles.title}>Shop-Daten</h2>
           <form onSubmit={saveShopDetails} className={styles.form}>
@@ -293,7 +285,7 @@ const handleAddBarber = async e => {
               className={styles.input}
               placeholder="Shop-Name"
               value={shopName}
-              onChange={e => setShopName(e.target.value)}
+              onChange={e=>setShopName(e.target.value)}
               required
             />
             <label>
@@ -301,7 +293,7 @@ const handleAddBarber = async e => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={e => {
+                onChange={e=>{
                   setLogoFile(e.target.files[0]);
                   setLogoPreview(URL.createObjectURL(e.target.files[0]));
                 }}
@@ -312,7 +304,7 @@ const handleAddBarber = async e => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={e => {
+                onChange={e=>{
                   setImgFile(e.target.files[0]);
                   setImgPreview(URL.createObjectURL(e.target.files[0]));
                 }}
@@ -322,7 +314,7 @@ const handleAddBarber = async e => {
           </form>
         </div>
 
-        {/* ─── Rechte Spalte: Einstellungen ────────── */}
+        {/* ─── Rechte Spalte ───────────────────────── */}
         <div className={styles.right}>
           {message && <div className={styles.success}>{message}</div>}
 
@@ -334,16 +326,16 @@ const handleAddBarber = async e => {
               <div className={styles.gridHeader}>Status</div>
               <div className={styles.gridHeader}>Öffnet</div>
               <div className={styles.gridHeader}>Schließt</div>
-              {openingHours.map((h, i) => (
+              {openingHours.map((h,i)=>(
                 <React.Fragment key={h.day_of_week}>
                   <div className={styles.gridCell}>
-                    {["Mo","Di","Mi","Do","Fr","Sa","So"][h.day_of_week - 1]}
+                    {["Mo","Di","Mi","Do","Fr","Sa","So"][h.day_of_week-1]}
                   </div>
                   <select
-                    value={h.is_closed ? "closed" : "open"}
-                    onChange={e => {
-                      const a = [...openingHours];
-                      a[i].is_closed = e.target.value === "closed";
+                    value={h.is_closed?"closed":"open"}
+                    onChange={e=>{
+                      const a=[...openingHours];
+                      a[i].is_closed=e.target.value==="closed";
                       setOpeningHours(a);
                     }}
                   >
@@ -353,22 +345,22 @@ const handleAddBarber = async e => {
                   <input
                     type="time"
                     className={styles.timeInput}
-                    value={h.open_time || ""}
+                    value={h.open_time||""}
                     disabled={h.is_closed}
-                    onChange={e => {
-                      const a = [...openingHours];
-                      a[i].open_time = e.target.value;
+                    onChange={e=>{
+                      const a=[...openingHours];
+                      a[i].open_time=e.target.value;
                       setOpeningHours(a);
                     }}
                   />
                   <input
                     type="time"
                     className={styles.timeInput}
-                    value={h.close_time || ""}
+                    value={h.close_time||""}
                     disabled={h.is_closed}
-                    onChange={e => {
-                      const a = [...openingHours];
-                      a[i].close_time = e.target.value;
+                    onChange={e=>{
+                      const a=[...openingHours];
+                      a[i].close_time=e.target.value;
                       setOpeningHours(a);
                     }}
                   />
@@ -379,30 +371,23 @@ const handleAddBarber = async e => {
               Öffnungszeiten speichern
             </button>
           </div>
-         
+
           {/* Leistungen & Preise */}
           <div className={styles.subsection}>
             <h2 className={styles.title}>Leistungen & Preise</h2>
             <table className={styles.servicesTable}>
               <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Preis (€)</th>
-                  <th>Aktion</th>
-                </tr>
+                <tr><th>Name</th><th>Preis (€)</th><th>Aktion</th></tr>
               </thead>
               <tbody>
-                {services.map(s => (
+                {services.map(s=>(
                   <tr key={s.id}>
                     <td>
                       <input
                         className={styles.input}
                         value={s.name}
-                        onChange={e => setServices(ss =>
-                          ss.map(x => x.id === s.id
-                            ? { ...x, name: e.target.value }
-                            : x
-                          )
+                        onChange={e=>setServices(ss=>
+                          ss.map(x=>x.id===s.id?{...x,name:e.target.value}:x)
                         )}
                       />
                     </td>
@@ -411,21 +396,14 @@ const handleAddBarber = async e => {
                         className={styles.input}
                         type="number"
                         value={s.price}
-                        onChange={e => setServices(ss =>
-                          ss.map(x => x.id === s.id
-                            ? { ...x, price: e.target.value }
-                            : x
-                          )
+                        onChange={e=>setServices(ss=>
+                          ss.map(x=>x.id===s.id?{...x,price:e.target.value}:x)
                         )}
                       />
                     </td>
                     <td>
-                      <button className={styles.saveBtn} onClick={() => saveService(s)}>
-                        Speichern
-                      </button>
-                      <button className={styles.deleteBtn} onClick={() => removeService(s.id)}>
-                        Löschen
-                      </button>
+                      <button className={styles.saveBtn} onClick={()=>saveService(s)}>Speichern</button>
+                      <button className={styles.deleteBtn} onClick={()=>removeService(s.id)}>Löschen</button>
                     </td>
                   </tr>
                 ))}
@@ -444,7 +422,7 @@ const handleAddBarber = async e => {
                 className={styles.input}
                 placeholder="Name"
                 value={newBarber.full_name}
-                onChange={e => setNewBarber(nb => ({ ...nb, full_name: e.target.value }))}
+                onChange={e=>setNewBarber(nb=>({...nb,full_name:e.target.value}))}
                 required
               />
               <input
@@ -452,7 +430,7 @@ const handleAddBarber = async e => {
                 type="email"
                 placeholder="E-Mail"
                 value={newBarber.email}
-                onChange={e => setNewBarber(nb => ({ ...nb, email: e.target.value }))}
+                onChange={e=>setNewBarber(nb=>({...nb,email:e.target.value}))}
                 required
               />
               <input
@@ -460,28 +438,29 @@ const handleAddBarber = async e => {
                 type="password"
                 placeholder="Passwort"
                 value={newBarber.password}
-                onChange={e => setNewBarber(nb => ({ ...nb, password: e.target.value }))}
+                onChange={e=>setNewBarber(nb=>({...nb,password:e.target.value}))}
                 required
               />
               <button className={styles.createBtn}>Barber anlegen</button>
             </form>
 
             <ul className={styles.barberList}>
-              {barbers.map(b => (
+              {barbers.map(b=>(
                 <li key={b.id} className={styles.barberListItem}>
                   <span>
-                    {b.full_name} {b.is_active ? "" : "(gesperrt)"}
+                    <strong>{b.full_name}</strong><br/>
+                    <small>{b.email}</small>
                   </span>
                   <div className={styles.barberActions}>
                     <button
                       className={styles.lockBtn}
-                      onClick={() => toggleBarberActive(b.id, !b.is_active)}
+                      onClick={()=>toggleBarberActive(b.id,!b.is_active)}
                     >
-                      {b.is_active ? "Sperren" : "Entsperren"}
+                      {b.is_active?"Sperren":"Entsperren"}
                     </button>
                     <button
                       className={styles.deleteBtn}
-                      onClick={() => deleteBarber(b.id)}
+                      onClick={()=>deleteBarber(b.id)}
                     >
                       Löschen
                     </button>
@@ -490,9 +469,8 @@ const handleAddBarber = async e => {
               ))}
             </ul>
           </div>
-
         </div>
       </section>
     </div>
-  )
+  );
 }

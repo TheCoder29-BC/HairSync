@@ -1,35 +1,92 @@
 /* src/components/Card.module.css */
+:root {
+  --primary: #1f2937;
+  --white:   #ffffff;
+  --shadow:  rgba(0, 0, 0, 0.1);
+}
+
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1.5rem;
   justify-items: center;
+  padding: 1rem 0;
 }
 
 .card {
   width: 100%;
   max-width: 220px;
-  background: #fff;
+  background: var(--white);
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px var(--shadow);
   text-align: center;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
   transition: transform .2s;
+  display: flex;
+  flex-direction: column;
 }
 .card:hover {
   transform: translateY(-4px);
 }
 
-.card img {
+/* Header-Bild */
+.cardImage {
   width: 100%;
   height: 140px;
   object-fit: cover;
 }
 
-.card h3 {
-  margin: 0.5rem 0;
+/* Neue Header-Zeile für Avatar + Title */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+}
+
+/* Rundes Avatar-Bild */
+.avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 0.75rem;
+}
+
+/* Shop-Name */
+.cardTitle {
+  margin: 0;
   font-size: 1rem;
-  padding: 0 0.5rem 1rem;
+  font-weight: 500;
+  color: var(--primary);
+  word-break: break-word;
+  text-align: left;
+}
+
+/* Fallback für ältere .card img und h3 – kannst du ggf. entfernen */
+.card img { /* entfällt, ersetzt durch .cardImage */ }
+.card h3 { /* entfällt, ersetzt durch .cardTitle */ }
+
+/* Responsive Anpassung */
+@media (max-width: 600px) {
+  .cardGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .card {
+    max-width: 160px;
+  }
+  .cardHeader {
+    padding: 0.5rem;
+  }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    margin-right: 0.5rem;
+  }
+  .cardTitle {
+    font-size: 0.9rem;
+  }
 }
