@@ -19,15 +19,11 @@ export default function BarbershopDashboard() {
 
   // ── Öffnungszeiten & Services ───────────────
   const [openingHours, setOpeningHours] = useState([]);
-  const [services,     setServices]     = useState([]);
+  const [services, setServices]         = useState([]);
 
   // ── Barber-Verwaltung ───────────────────────
-  const [barbers,    setBarbers]   = useState([]);
-  const [newBarber,  setNewBarber] = useState({
-    full_name: "",
-    email:     "",
-    password:  ""
-  });
+  const [barbers, setBarbers]     = useState([]);
+  const [newBarber, setNewBarber] = useState({full_name: "",email:     "",password:  ""});
 
   // ── UI-State ─────────────────────────────────
   const [loading, setLoading] = useState(true);
@@ -35,14 +31,14 @@ export default function BarbershopDashboard() {
 
   // Default-Stunden (falls leer)
   const defaultHours = Array.from({ length: 7 }, (_, i) => ({
-    id:          null,
+    id: null,
     day_of_week: i + 1,
-    open_time:   "",
-    close_time:  "",
-    is_closed:   false
+    open_time: "",
+    close_time: "",
+    is_closed: false
   }));
 
-  // ── Initiales Laden ───────────────────────────
+  // ── Initial Load ────────────────────────────
   useEffect(() => {
     if (!session) return;
     (async () => {
@@ -68,7 +64,6 @@ export default function BarbershopDashboard() {
       await reloadHours(shopData.id);
       await reloadServices(shopData.id);
       await reloadBarbers(shopData.id);
-
       setLoading(false);
     })();
   }, [session, navigate]);
@@ -85,23 +80,22 @@ export default function BarbershopDashboard() {
       setOpeningHours(
         defaultHours.map(d => {
           const found = data.find(r => r.day_of_week === d.day_of_week);
-          return found
-            ? { ...d, id: found.id, open_time: found.open_time, close_time: found.close_time, is_closed: found.is_closed }
-            : d;
+          return found ? { ...d, ...found } : d;
         })
       );
     }
   };
 
-  async function saveOpeningHours() {
+  const saveOpeningHours = async () => {
     if (!shop) return;
     setLoading(true);
+
     const payload = openingHours.map(r => ({
       id:            r.id ?? undefined,
       barbershop_id: shop.id,
       day_of_week:   r.day_of_week,
-      open_time:     r.is_closed ? null : (r.open_time || null),
-      close_time:    r.is_closed ? null : (r.close_time || null),
+      open_time:     r.is_closed ? null : r.open_time || null,
+      close_time:    r.is_closed ? null : r.close_time || null,
       is_closed:     r.is_closed
     }));
 
@@ -112,14 +106,11 @@ export default function BarbershopDashboard() {
         returning:  "minimal"
       });
 
-    if (error) setMessage("Fehler beim Speichern der Öffnungszeiten.");
-    else {
-      await reloadHours(shop.id);
-      setMessage("Öffnungszeiten gespeichert!");
-    }
+    setMessage(error ? "Fehler beim Speichern der Öffnungszeiten." : "Öffnungszeiten gespeichert!");
+    if (!error) await reloadHours(shop.id);
     setTimeout(() => setMessage(""), 3000);
     setLoading(false);
-  }
+  };
 
   // ── Services laden ────────────────────────────
   const reloadServices = async id => {
@@ -130,7 +121,7 @@ export default function BarbershopDashboard() {
     if (!error) setServices(data);
   };
 
-  async function saveService(entry) {
+  const saveService = async entry => {
     await supabase
       .from("shop_services")
       .upsert({
@@ -143,87 +134,95 @@ export default function BarbershopDashboard() {
         returning:  "minimal"
       });
     reloadServices(shop.id);
-  }
+  };
 
-  async function removeService(id) {
+  const removeService = async id => {
     if (!confirm("Service löschen?")) return;
     await supabase
       .from("shop_services")
       .delete()
       .eq("id", id);
     setServices(s => s.filter(x => x.id !== id));
-  }
+  };
 
-  async function addService() {
+  const addService = async () => {
     const { data, error } = await supabase
       .from("shop_services")
       .insert({ barbershop_id: shop.id, name: "", price: 0 })
       .select()
       .single();
     if (!error) setServices(s => [...s, data]);
-  }
-
-  // ── Barbers laden ─────────────────────────────
-  const reloadBarbers = async id => {
-    const { data, error } = await supabase
-      .from("barbers")
-      .select("id, full_name, user_id, is_active")
-      .eq("barbershop_id", id)
-      .order("full_name");
-    if (!error) setBarbers(data);
   };
 
-  // ── Edge Function aufrufen ────────────────────
-  async function createBarber({ full_name, email, password }) {
-    const { data, error } = await supabase.functions.invoke("create-barber", {
-      body: JSON.stringify({
-        full_name,
-        email,
-        password,
-        barbershop_id: shop.id,
-      }),
-    });
-    if (error) throw error;
-    return data;
-  }
+ // ── Barbers laden (Name + E-Mail) ─────────────────────────────
+const reloadBarbers = async shopId => {
+  const { data, error } = await supabase
+    .from("barbers")
+    .select("id, full_name, email, is_active")
+    .eq("barbershop_id", shopId)
+    .order("full_name");
 
-  async function handleAddBarber(e) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      // Neuen Barber anlegen
-      await createBarber(newBarber);
-      // Liste neu laden, so ist er sofort sichtbar
-      await reloadBarbers(shop.id);
-      // Formular zurücksetzen
-      setNewBarber({ full_name: "", email: "", password: "" });
-    } catch (err) {
-      alert("Fehler: " + err.message);
-    } finally {
-      setLoading(false);
+  if (error) {
+    console.error("reloadBarbers error:", error);
+    return;
+  }
+  setBarbers(data);
+};
+
+// ── Neuen Barber anlegen ─────────────────────
+const handleAddBarber = async e => {
+  e.preventDefault()
+  setLoading(true)
+  try {
+    const payload = {
+      full_name:     newBarber.full_name,
+      email:         newBarber.email,
+      password_hash: newBarber.password,  // oder dein Feldname
+      barbershop_id: shop.id,
+      is_active:     true
     }
-  }
 
-  // ── Barber sperren/löschen ───────────────────
-  async function toggleBarberActive(id, act) {
+    // 1) Edge Function oder Direkt-Insert
+    // (hier am Beispiel eines direkten Inserts in die Tabelle "barbers")
+    const { data, error } = await supabase
+      .from("barbers")
+      .insert(payload)
+      .select()
+      .single()
+    if (error) throw error
+
+    // 2) Barber-Liste neu laden
+    await reloadBarbers(shop.id)
+
+    // 3) Formular zurücksetzen
+    setNewBarber({ full_name: "", email: "", password: "" })
+  } catch (err) {
+    alert("Fehler: " + err.message)
+  } finally {
+    setLoading(false)
+  }
+}
+
+  // ── Barber sperren/löschen ────────────────────
+  const toggleBarberActive = async (id, act) => {
     await supabase
       .from("barbers")
       .update({ is_active: act })
       .eq("id", id);
     reloadBarbers(shop.id);
-  }
+  };
 
-  async function deleteBarber(id) {
+  const deleteBarber = async id => {
     if (!confirm("Barber wirklich löschen?")) return;
     await supabase
       .from("barbers")
       .delete()
       .eq("id", id);
     reloadBarbers(shop.id);
-  }
+  };
 
-  // ── Shop-Daten speichern ──────────────────────
-  async function saveShopDetails(e) {
+  // ── Shop-Daten speichern ─────────────────────
+  const saveShopDetails = async e => {
     e.preventDefault();
     if (!shop) return;
     setLoading(true);
@@ -232,8 +231,8 @@ export default function BarbershopDashboard() {
     let image_url = shop.image_url;
 
     if (logoFile) {
-      const ext      = logoFile.name.split(".").pop();
-      const path     = `${shop.id}/logo_${Date.now()}.${ext}`;
+      const ext  = logoFile.name.split(".").pop();
+      const path = `${shop.id}/logo_${Date.now()}.${ext}`;
       const { data: up } = await supabase
         .storage
         .from("shop-logos")
@@ -246,8 +245,8 @@ export default function BarbershopDashboard() {
     }
 
     if (imgFile) {
-      const ext      = imgFile.name.split(".").pop();
-      const path     = `${shop.id}/img_${Date.now()}.${ext}`;
+      const ext  = imgFile.name.split(".").pop();
+      const path = `${shop.id}/img_${Date.now()}.${ext}`;
       const { data: up } = await supabase
         .storage
         .from("shop-images")
@@ -264,23 +263,24 @@ export default function BarbershopDashboard() {
       .update({ name: shopName, logo_url, image_url })
       .eq("id", shop.id);
 
-    if (error) setMessage("Speichern fehlgeschlagen.");
-    else {
+    setMessage(error ? "Speichern fehlgeschlagen." : "Shop-Daten gespeichert!");
+    if (!error) {
       setShop({ ...shop, name: shopName, logo_url, image_url });
       setLogoFile(null);
       setImgFile(null);
-      setMessage("Shop-Daten gespeichert!");
     }
     setTimeout(() => setMessage(""), 3000);
     setLoading(false);
-  }
+  };
 
+  // ── Render ────────────────────────────────────
   if (loading) return <p className={styles.loading}>Lade Daten…</p>;
   if (!shop)    return null;
 
   return (
     <div className={styles.wrapper}>
       <section className={styles.card}>
+
         {/* ─── Linke Spalte: Shop-Daten ────────────── */}
         <div className={styles.left}>
           <h1 className={styles.title}>Willkommen, {shop.name}!</h1>
@@ -379,7 +379,7 @@ export default function BarbershopDashboard() {
               Öffnungszeiten speichern
             </button>
           </div>
-
+         
           {/* Leistungen & Preise */}
           <div className={styles.subsection}>
             <h2 className={styles.title}>Leistungen & Preise</h2>
@@ -399,7 +399,10 @@ export default function BarbershopDashboard() {
                         className={styles.input}
                         value={s.name}
                         onChange={e => setServices(ss =>
-                          ss.map(x => x.id === s.id ? { ...x, name: e.target.value } : x)
+                          ss.map(x => x.id === s.id
+                            ? { ...x, name: e.target.value }
+                            : x
+                          )
                         )}
                       />
                     </td>
@@ -409,7 +412,10 @@ export default function BarbershopDashboard() {
                         type="number"
                         value={s.price}
                         onChange={e => setServices(ss =>
-                          ss.map(x => x.id === s.id ? { ...x, price: e.target.value } : x)
+                          ss.map(x => x.id === s.id
+                            ? { ...x, price: e.target.value }
+                            : x
+                          )
                         )}
                       />
                     </td>
@@ -488,5 +494,5 @@ export default function BarbershopDashboard() {
         </div>
       </section>
     </div>
-  );
+  )
 }
