@@ -1,35 +1,45 @@
-// src/components/Navbar.jsx 
+// src/components/Navbar.jsx
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation }    from 'react-router-dom'
 import { useAuth }                           from '../context/AuthContext.jsx'
 import { supabase }                          from '../supabase/client.js'
+import { useTranslation }                    from 'react-i18next'
 import styles                                from './Navbar.module.css'
 
 export default function Navbar() {
+  const { t, i18n }         = useTranslation()
   const { session, logout } = useAuth()
   const navigate            = useNavigate()
   const { pathname }        = useLocation()
-  const [open, setOpen]     = useState(false)
-  const dropdownRef         = useRef()
 
-  // NEU: Logo-URL aus Barbershop-Tabelle
+  // State für Profil-Dropdown
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef                    = useRef()
+
+  // State für Sprach-Dropdown
+  const [langOpen, setLangOpen] = useState(false)
+  const langRef                 = useRef()
+
+  // Shop-Logo für Barbershop-User
   const [shopLogo, setShopLogo] = useState(null)
 
-  // Klick außerhalb = Dropdown schließen
+  // Klick außerhalb schließt beide Dropdowns
   useEffect(() => {
-    function onClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false)
+    function handleOutside(e) {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false)
+      }
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setLangOpen(false)
       }
     }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
   }, [])
 
-  // Rolle auslesen
   const role = session?.user?.user_metadata?.role
 
-  // NEU: beim Barbershop-User das Shop-Logo laden
+  // Logo für Barbershop-User laden
   useEffect(() => {
     if (session && role === 'barbershop') {
       ;(async () => {
@@ -50,14 +60,23 @@ export default function Navbar() {
     navigate('/login', { replace: true })
   }
 
+  // verfügbare Sprachcodes
+  const languages = ['de', 'en', 'tr']
+
+  const switchLanguage = (lng) => {
+    i18n.changeLanguage(lng)
+    setLangOpen(false)
+  }
+
   return (
     <nav className={styles.navbar}>
-      <Link to="/" className={styles.logo} style={{ fontFamily: 'inherit' }}>
-        HairSync
+      {/* Markenname */}
+      <Link to="/" className={styles.logo}>
+        {t('app_name')}
       </Link>
 
       <div className={styles.right}>
-        {/* Kunde-Links */}
+        {/* Kunden-Links */}
         {session && role === 'customer' && (
           <>
             <Link
@@ -66,7 +85,7 @@ export default function Navbar() {
                 pathname.startsWith('/barbershops') ? styles.active : ''
               }`}
             >
-              Barbershops
+              {t('barbershops')}
             </Link>
             <Link
               to="/appointments"
@@ -74,7 +93,7 @@ export default function Navbar() {
                 pathname.startsWith('/appointments') ? styles.active : ''
               }`}
             >
-              Meine Termine
+              {t('my_appointments')}
             </Link>
           </>
         )}
@@ -88,7 +107,7 @@ export default function Navbar() {
                 pathname.startsWith('/barbershop-dashboard') ? styles.active : ''
               }`}
             >
-              Dashboard
+              {t('dashboard')}
             </Link>
             <Link
               to="/shop-appointments"
@@ -96,33 +115,64 @@ export default function Navbar() {
                 pathname.startsWith('/shop-appointments') ? styles.active : ''
               }`}
             >
-              Termine
+              {t('appointments')}
             </Link>
-            {/* NEU: Link zum Dienstplan */}
             <Link
               to="/barbershop-schedule"
               className={`${styles.link} ${
                 pathname.startsWith('/barbershop-schedule') ? styles.active : ''
               }`}
             >
-              Dienstplan
+              {t('schedule')}
             </Link>
           </>
         )}
 
-        {/* Profil-Dropdown */}
+        {/* Profil-Bereich mit Flaggen + Avatar */}
         {session && (
-          <div className={styles.profile} ref={dropdownRef}>
+          <div className={styles.profile} ref={profileRef}>
+            {/* Flaggen-Dropdown */}
+            <div className={styles.flagWrapper} ref={langRef}>
+              <button
+                className={styles.flagButton}
+                onClick={() => setLangOpen(o => !o)}
+              >
+                <img
+                  src={`/flags/${i18n.language}.svg`}
+                  alt={t('language')}
+                  className={styles.flagIcon}
+                />
+              </button>
+              {langOpen && (
+                <div className={styles.flagDropdown}>
+                  {languages.map(lng => (
+                    <button
+                      key={lng}
+                      className={styles.flagItem}
+                      onClick={() => switchLanguage(lng)}
+                    >
+                      <img
+                        src={`/flags/${lng}.svg`}
+                        alt={t(`language_${lng}`)}
+                        className={styles.flagIcon}
+                      />
+                      <span>{t(`language_${lng}`)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Avatar-/Icon-Button */}
             <button
               className={styles.iconButton}
-              onClick={() => setOpen(o => !o)}
+              onClick={() => setProfileOpen(o => !o)}
             >
               {role === 'barbershop' && shopLogo ? (
                 <img
                   src={shopLogo}
-                  alt="Shop Logo"
-                  className="w-8 h-8 rounded-full object-cover"
-                  style={{ width: 32, height: 32, borderRadius: '50%' }}
+                  alt={t('logo_alt')}
+                  className={styles.avatar}
                 />
               ) : (
                 <svg
@@ -136,36 +186,34 @@ export default function Navbar() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M5.121 17.804A10.97 10.97 0 0112 15c2.385 0 4.58.78 
-                       6.379 2.093M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    d="M5.121 17.804A10.97 10.97 0 0112 15c2.385 0 4.58.78 6.379 2.093
+                       M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
               )}
             </button>
 
-            {open && (
+            {/* Profil-Dropdown */}
+            {profileOpen && (
               <div className={`${styles.dropdown} animate-fade-in`}>
                 <p className={styles.dropdownItem}>
-                  Eingeloggt als<br/>
+                  {t('logged_in_as')}<br/>
                   <strong>{session.user.email}</strong>
                 </p>
-
-                {/* Profil-Link nur für Kunden */}
                 {role === 'customer' && (
                   <Link
                     to="/profile"
                     className={styles.dropdownItem}
-                    onClick={() => setOpen(false)}
+                    onClick={() => setProfileOpen(false)}
                   >
-                    Profil
+                    {t('profile')}
                   </Link>
                 )}
-
                 <button
                   className={`${styles.dropdownItem} ${styles.signOut}`}
                   onClick={handleSignOut}
                 >
-                  Abmelden
+                  {t('sign_out')}
                 </button>
               </div>
             )}

@@ -1,0 +1,44 @@
+/* src/pages/BookingPage.module.css */
+
+/* Farbvariablen (werden aus :root geerbt) */
+:root {
+    --primary: #1f2937;
+    --accent:  #4f46e5;
+    --bg:      #f9fafb;
+  }
+  
+  /* Haupt-Container */
+  .container {
+    padding: 1rem;
+    background: var(--bg);
+    min-height: calc(100vh - 4rem); /* abzüglich Navbar-Höhe */
+  }
+  
+  /* Überschrift */
+  .title {
+    font-size: 1.75rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+  
+  /* Zurück-Link */
+  .backLink {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    color: var(--primary);
+    transition: color 0.2s ease;
+  }
+  .backLink:hover {
+    color: var(--accent);
+  }
+  
+  /* Scheduler-Wrapper */
+  .schedulerWrapper {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  

@@ -50,140 +50,215 @@ const IMAGE_MAP = {
   'hair':                 shop18,
 }
 
+// Generiert Zeiten im Intervall (in Minuten) zwischen open und close
+function generateSlots(openTime, closeTime, interval = 30) {
+  if (!openTime || !closeTime) return []
+  const [oh, om] = openTime.split(':').map(Number)
+  const [ch, cm] = closeTime.split(':').map(Number)
+  const slots = []
+  let cur = new Date(0,0,0, oh, om)
+  const end = new Date(0,0,0, ch, cm)
+  while (cur < end) {
+    slots.push(cur.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' }))
+    cur = new Date(cur.getTime() + interval * 60000)
+  }
+  return slots
+}
+
 export default function ShopDetail() {
   const { session }    = useAuth()
   const { id: shopId } = useParams()
 
-  const [shop, setShop]               = useState(null)
-  const [barbers, setBarbers]         = useState([])
-  const [services, setServices]       = useState([])
+  // Shop-States
+  const [shop, setShop]                 = useState(null)
   const [openingHours, setOpeningHours] = useState([])
+  const [barbers, setBarbers]           = useState([])
+  const [services, setServices]         = useState([])
+
+  // Booking-Form States
   const [date, setDate]               = useState(new Date())
-  const [time, setTime]               = useState('')
   const [barberId, setBarberId]       = useState('')
+  const [time, setTime]               = useState('')
   const [serviceId, setServiceId]     = useState('')
   const [appointment, setAppointment] = useState(null)
+
+  // Loading & Error
+  const [loadingData, setLoadingData] = useState(true)
   const [loading, setLoading]         = useState(false)
+  const [errorMsg, setErrorMsg]       = useState('')
 
-  // Slots 9–17 Uhr
-  const slots = Array.from({ length: 9 }, (_, i) => `${9 + i}:00`)
+  // Slot-Filtering States
+  const [bookedSlots, setBookedSlots] = useState([])
+  const [timeOptions, setTimeOptions] = useState([])
 
+  // 1) Lade Shop, Stunden, Friseure, Services
   useEffect(() => {
     if (!session) return
     ;(async () => {
-      // --- 1) Shop-Daten
-      const { data: shopData, error: shopErr } = await supabase
-        .from('barbershops')
-        .select('id, name, image_url')
-        .eq('id', shopId)
-        .single()
-      if (shopErr) {
-        toast.error('Shop nicht gefunden.')
-        return
-      }
-      setShop(shopData)
+      setLoadingData(true)
+      setErrorMsg('')
+      try {
+        const { data: shopData, error: shopErr } = await supabase
+          .from('barbershops')
+          .select('id,name,image_url')
+          .eq('id', shopId)
+          .single()
+        if (shopErr) throw new Error('Shop nicht gefunden.')
+        setShop(shopData)
 
-      // --- 2) Öffnungszeiten
-      const { data: hoursData, error: hoursErr } = await supabase
-        .from('opening_hours')
-        .select('day_of_week, open_time, close_time, is_closed')
-        .eq('barbershop_id', shopId)
-        .order('day_of_week')
-      if (hoursErr) toast.error('Fehler beim Laden der Öffnungszeiten.')
-      else          setOpeningHours(hoursData)
+        const { data: hoursData, error: hoursErr } = await supabase
+          .from('opening_hours')
+          .select('day_of_week, open_time, close_time, is_closed')
+          .eq('barbershop_id', shopId)
+          .order('day_of_week')
+        if (hoursErr) throw new Error('Fehler beim Laden der Öffnungszeiten.')
+        setOpeningHours(hoursData)
 
-      // --- 3) Friseure
-      const { data: barbersData, error: barbersErr } = await supabase
-        .from('barbers')
-        .select('id, full_name')
-        .eq('barbershop_id', shopId)
-        .order('full_name')
-      if (barbersErr) toast.error('Fehler beim Laden der Friseure.')
-      else            setBarbers(barbersData)
+        const { data: barbersData, error: barbersErr } = await supabase
+          .from('barbers')
+          .select('id,full_name')
+          .eq('barbershop_id', shopId)
+          .order('full_name')
+        if (barbersErr) throw new Error('Fehler beim Laden der Friseure.')
+        setBarbers(barbersData)
 
-      // --- 4) shop_services (id, name, price)
-      const { data: svcData, error: svcErr } = await supabase
-        .from('shop_services')
-        .select('id, name, price')
-        .eq('barbershop_id', shopId)
-        .order('name')
-      if (svcErr) {
-        toast.error('Fehler beim Laden der Leistungen.')
-      } else {
+        const { data: svcData, error: svcErr } = await supabase
+          .from('shop_services')
+          .select('id,name,price')
+          .eq('barbershop_id', shopId)
+          .order('name')
+        if (svcErr) throw new Error('Fehler beim Laden der Leistungen.')
         setServices(svcData)
+      } catch (err) {
+        setErrorMsg(err.message)
       }
+      setLoadingData(false)
     })()
   }, [session, shopId])
 
-  if (!session) return null
-  if (!shop)    return <div className={styles.loading}>Lade Shop…</div>
+  // 2) Lade gebuchte Slots, wenn Barber oder Datum wechseln
+  useEffect(() => {
+    if (!barberId) {
+      setBookedSlots([])
+      return
+    }
+    const day = date.toISOString().slice(0,10)
+    const from = `${day}T00:00:00Z`
+    const to   = `${day}T23:59:59Z`
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('appointment_time')
+        .eq('barber_id', barberId)
+        .eq('status', 'confirmed')
+        .gte('appointment_time', from)
+        .lte('appointment_time', to)
+      if (!error) {
+        const times = data.map(a =>
+          new Date(a.appointment_time)
+            .toLocaleTimeString('de-DE',{ hour:'2-digit',minute:'2-digit' })
+        )
+        setBookedSlots(times)
+      }
+    })()
+  }, [barberId, date])
 
-  // Thumbnail-Fallback
-  const key   = shop.name.trim().toLowerCase()
-  const thumb = IMAGE_MAP[key] || shop.image_url
+  // 3) Generiere timeOptions aus Öffnungszeiten + filtere gebuchte
+  useEffect(() => {
+    const weekday = date.getDay() === 0 ? 7 : date.getDay()
+    const todays = openingHours.find(h => h.day_of_week === weekday)
+    if (!todays || todays.is_closed || !barberId) {
+      setTimeOptions([])
+      setTime('')
+      return
+    }
+    const slots = generateSlots(todays.open_time, todays.close_time, 30)
+    const filtered = slots.filter(s => !bookedSlots.includes(s))
+    setTimeOptions(filtered)
+    if (!filtered.includes(time)) setTime('')
+  }, [openingHours, barberId, bookedSlots, date])
 
   const handleBooking = async e => {
     e.preventDefault()
     setLoading(true)
-
-    // Datum + Zeit kombinieren
-    const dt = new Date(date)
-    const [h, m] = time.split(':').map(Number)
-    dt.setHours(h, m, 0, 0)
-
-    const { data, error } = await supabase
-      .from('appointments')
-      .insert([{
-        appointment_time: dt.toISOString(),
-        status:          'pending',
-        user_id:         session.user.id,
-        barbershop_id:   shopId,
-        barber_id:       barberId,
-        service_id:      serviceId,  // das ist jetzt eine gültige shop_services.id
-      }])
-      .single()
-
-    setLoading(false)
-    if (error) {
-      toast.error('Fehler beim Buchen: ' + error.message)
-    } else {
-      toast.success('Termin erfolgreich gebucht!')
+    setErrorMsg('')
+    try {
+      const dt = new Date(date)
+      const [h,m] = time.split(':').map(Number)
+      dt.setHours(h,m,0,0)
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert([{
+          appointment_time: dt.toISOString(),
+          status:           'pending',
+          user_id:          session.user.id,
+          barbershop_id:    shopId,
+          barber_id:        barberId,
+          service_id:       serviceId
+        }])
+        .single()
+      if (error) throw new Error(error.message)
       setAppointment(data)
+      toast.success('Termin erfolgreich gebucht!')
       setTime(''); setBarberId(''); setServiceId('')
+    } catch (err) {
+      setErrorMsg('Fehler: ' + err.message)
     }
+    setLoading(false)
   }
+
+  if (!session) return null
+  if (loadingData) {
+    return (
+      <div className={styles.wrapper}>
+        <div className={styles.skeletonCard}>
+          <div className={styles.skelTitle} />
+          <div className={styles.skelThumbnail} />
+          <div className={styles.skelCalendar} />
+          <div className={styles.skelForm} />
+        </div>
+      </div>
+    )
+  }
+  if (errorMsg) {
+    return (
+      <div className={styles.wrapper}>
+        <div className={styles.errorBanner}>{errorMsg}</div>
+      </div>
+    )
+  }
+
+  const key   = shop.name.trim().toLowerCase()
+  const thumb = IMAGE_MAP[key] || shop.image_url
 
   return (
     <div className={styles.wrapper}>
       <Toaster position="top-center" />
-      <div className={styles.card}>
 
-        {/* Spalte 1: Shop-Info */}
+      <div className={styles.card}>
+        {/* Linke Spalte */}
         <div className={styles.left}>
-          <Link to="/barbershops" className={styles.backLink}>
-            ← alle Barbershops
-          </Link>
+          <Link to="/barbershops" className={styles.backLink}>← alle Barbershops</Link>
           <h1 className={styles.title}>{shop.name}</h1>
-          {thumb && <img src={thumb} alt={shop.name} className={styles.thumbnail}/> }
+          {thumb && <img src={thumb} alt={shop.name} className={styles.thumbnail} />}
         </div>
 
-        {/* Spalte 2: Kalender */}
+        {/* Kalender */}
         <div className={styles.calendarWrapper}>
           <Calendar onChange={setDate} value={date} minDate={new Date()} />
         </div>
 
-        {/* Spalte 3: Öffnungszeiten & Preise */}
+        {/* Öffnungszeiten & Preise */}
         <div className={styles.info}>
           <div className={styles.infoSection}>
             <h2>Öffnungszeiten</h2>
             <ul className={styles.hoursList}>
               {openingHours.map(h => {
-                const days  = ['Mo','Di','Mi','Do','Fr','Sa','So']
+                const days = ['Mo','Di','Mi','Do','Fr','Sa','So']
                 const label = days[h.day_of_week - 1]
-                const fmt   = t => t?.slice(0,5)
                 const times = h.is_closed
                   ? 'geschlossen'
-                  : `${fmt(h.open_time)}–${fmt(h.close_time)}`
+                  : `${h.open_time.slice(0,5)}–${h.close_time.slice(0,5)}`
                 return (
                   <li key={h.day_of_week}>
                     <span className={styles.day}>{label}</span>
@@ -193,22 +268,21 @@ export default function ShopDetail() {
               })}
             </ul>
           </div>
+
           <div className={styles.infoSection}>
             <h2>Leistungen & Preise</h2>
             <ul className={styles.servicesList}>
               {services.map(s => (
                 <li key={s.id}>
                   <span>{s.name}</span>
-                  <span className={styles.price}>
-                    {parseFloat(s.price).toFixed(2)} €
-                  </span>
+                  <span className={styles.price}>{parseFloat(s.price).toFixed(2)} €</span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {/* Formular (breit über Spalten 2+3) */}
+        {/* Formular: Reihenfolge getauscht */}
         <form onSubmit={handleBooking} className={styles.form}>
           <input
             readOnly
@@ -219,23 +293,21 @@ export default function ShopDetail() {
           <select
             required
             className={styles.select}
-            value={time}
-            onChange={e => setTime(e.target.value)}
+            value={barberId}
+            onChange={e => { setBarberId(e.target.value); setTime('') }}
           >
-            <option value="">– Uhrzeit wählen –</option>
-            {slots.map(s => <option key={s} value={s}>{s}</option>)}
+            <option value="">– Barber wählen –</option>
+            {barbers.map(b => <option key={b.id} value={b.id}>{b.full_name}</option>)}
           </select>
 
           <select
             required
             className={styles.select}
-            value={barberId}
-            onChange={e => setBarberId(e.target.value)}
+            value={time}
+            onChange={e => setTime(e.target.value)}
           >
-            <option value="">– Barber wählen –</option>
-            {barbers.map(b => (
-              <option key={b.id} value={b.id}>{b.full_name}</option>
-            ))}
+            <option value="">– Uhrzeit wählen –</option>
+            {timeOptions.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
           <select
@@ -245,17 +317,11 @@ export default function ShopDetail() {
             onChange={e => setServiceId(e.target.value)}
           >
             <option value="">– Leistung wählen –</option>
-            {services.map(s => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
+            {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={styles.button}
-          >
-            Termin buchen
+          <button type="submit" disabled={loading} className={styles.button}>
+            {loading ? 'Buchen…' : 'Termin buchen'}
           </button>
         </form>
 
@@ -266,30 +332,16 @@ export default function ShopDetail() {
             <p>
               <strong>Datum:</strong>{' '}
               {new Date(appointment.appointment_time)
-                .toLocaleString('de-DE',{
-                  dateStyle: 'short',
-                  timeStyle: 'short'
-                })}
+                .toLocaleString('de-DE',{ dateStyle:'short',timeStyle:'short' })}
             </p>
             <p>
               <strong>Barber:</strong>{' '}
-              {barbers.find(b => b.id === appointment.barber_id)
-                 ?.full_name}
+              {barbers.find(b => b.id === appointment.barber_id)?.full_name}
             </p>
             <p>
               <strong>Leistung:</strong>{' '}
-              {services.find(s => s.id === appointment.service_id)
-                 ?.name}
+              {services.find(s => s.id === appointment.service_id)?.name}
             </p>
-          </div>
-        )}
-
-        {/* Spinner Overlay */}
-        {loading && (
-          <div className={styles.spinnerOverlay}>
-            <div className={styles.spinner}>
-              <div/><div/><div/>
-            </div>
           </div>
         )}
       </div>

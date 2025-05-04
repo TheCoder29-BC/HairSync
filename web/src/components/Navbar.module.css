@@ -19,6 +19,8 @@
   background: var(--white);
   box-shadow: 0 2px 4px var(--shadow);
   font-family: inherit;
+  position: relative;
+  z-index: 5;
 }
 
 /* Logo */
@@ -37,9 +39,74 @@
   font-family: inherit;
 }
 
-/* ─── Links ───────────────── */
+/* Profil-Dropdown mit flex, um Flag und Avatar nebeneinander zu positionieren */
+.profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+  font-family: inherit;
+}
 
-/* Grundstil */
+/* Language-Flaggen im Profil */
+.flagWrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-right: 0.75rem;
+}
+.flagButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+  color: var(--primary);
+}
+.flagButton:hover {
+  color: var(--accent);
+}
+.flagIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+.flagDropdown {
+  position: absolute;
+  top: 2.5rem;
+  right: 0;
+  background: var(--white);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px var(--shadow);
+  overflow: hidden;
+  z-index: 10;
+}
+.flagItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  width: 100%;
+  font-size: 0.9rem;
+  color: var(--primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.flagItem:hover {
+  background: var(--bg);
+}
+
+/* Avatar Bild */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Links */
 .link {
   position: relative;
   margin-right: 1.5rem;
@@ -49,13 +116,9 @@
   transition: color 0.2s ease;
   font-family: inherit;
 }
-
-/* Hover-Farbe */
 .link:hover {
   color: var(--accent);
 }
-
-/* animierte Unterstreichung (von 0 → 100%) */
 .link::after {
   content: "";
   position: absolute;
@@ -66,51 +129,32 @@
   background: var(--accent);
   transition: width 0.3s ease;
 }
-
-/* Hover-Unterstreichung */
-.link:hover::after {
-  width: 100%;
-}
-
-/* Active-Link: bleibt unterstrichen und accent-farben */
-.link.active {
-  color: var(--accent);
-}
+.link:hover::after,
 .link.active::after {
   width: 100%;
 }
-
-/* ─── Profil-Dropdown ───────────────── */
-
-/* Wrapper */
-.profile {
-  position: relative;
-  font-family: inherit;
+.link.active {
+  color: var(--accent);
 }
 
-/* Icon-Button */
+/* Avatar/Icon-Button */
 .iconButton {
   background: none;
   border: none;
-  outline: none;
   padding: 0;
   cursor: pointer;
   color: var(--primary);
   transition: color 0.2s ease;
-  font-family: inherit;
 }
 .iconButton:hover {
   color: var(--accent);
 }
-
-/* User-Icon */
 .icon {
   width: 1.5rem;
   height: 1.5rem;
-  /* Icons übernehmen automatically currentColor */
 }
 
-/* Dropdown-Panel */
+/* Profil-Dropdown */
 .dropdown {
   position: absolute;
   top: 2.5rem;
@@ -120,10 +164,8 @@
   box-shadow: 0 4px 16px var(--shadow);
   width: 200px;
   overflow: hidden;
-  font-family: inherit;
+  z-index: 10;
 }
-
-/* Dropdown-Items */
 .dropdownItem {
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
@@ -138,14 +180,11 @@
 .dropdownItem:hover {
   background: var(--bg);
 }
-
-/* Sign-Out-Button */
 .signOut {
   color: #ef4444;
   border: none;
   width: 100%;
   text-align: center;
-  font-family: inherit;
 }
 .signOut:hover {
   background: rgba(239, 68, 68, 0.1);

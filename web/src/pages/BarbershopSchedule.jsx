@@ -108,6 +108,7 @@ export default function BarbershopSchedule() {
   const handleAdd = async e => {
     e.preventDefault();
     if (!newEntry.barber_id || !newEntry.date) return;
+    setLoading(true);
     await saveSchedule(newEntry);
     setNewEntry({
       barber_id:  "",
@@ -116,6 +117,7 @@ export default function BarbershopSchedule() {
       start_time: "",
       end_time:   ""
     });
+    setLoading(false);
   };
 
   if (loading) return <p className={styles.loading}>Lade Dienstplan…</p>;
@@ -126,6 +128,7 @@ export default function BarbershopSchedule() {
 
       {/* neues Entry-Form */}
       <form className={styles.newRow} onSubmit={handleAdd}>
+        {/* Barber-Auswahl */}
         <select
           required
           value={newEntry.barber_id}
@@ -135,10 +138,13 @@ export default function BarbershopSchedule() {
         >
           <option value="">Barber wählen</option>
           {barbers.map(b => (
-            <option key={b.id} value={b.id}>{b.full_name}</option>
+            <option key={b.id} value={b.id}>
+              {b.full_name}
+            </option>
           ))}
         </select>
 
+        {/* Datum */}
         <input
           type="date"
           required
@@ -148,6 +154,7 @@ export default function BarbershopSchedule() {
           }
         />
 
+        {/* Status */}
         <select
           value={newEntry.status}
           onChange={e =>
@@ -160,6 +167,7 @@ export default function BarbershopSchedule() {
           <option value="sick">Krank</option>
         </select>
 
+        {/* Zeiten */}
         <input
           type="time"
           value={newEntry.start_time}
@@ -177,7 +185,7 @@ export default function BarbershopSchedule() {
           }
         />
 
-        <button type="submit" className={styles.addBtn}>
+        <button type="submit" className={styles.addBtn} disabled={loading}>
           Hinzufügen
         </button>
       </form>

@@ -3,9 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate }               from "react-router-dom";
 import { supabase }                  from "../supabase/client.js";
 import { useAuth }                   from "../context/AuthContext.jsx";
+import { useTranslation }            from "react-i18next";
 import styles                        from "./BarbershopDashboard.module.css";
 
 export default function BarbershopDashboard() {
+  const { t }       = useTranslation();
   const { session } = useAuth();
   const navigate    = useNavigate();
 
@@ -54,7 +56,7 @@ export default function BarbershopDashboard() {
         .maybeSingle();
 
       if (shopErr || !shopData) {
-        if (!shopErr) alert("Kein Shop gefunden – bitte anlegen");
+        if (!shopErr) alert(t("no_shop_found"));
         navigate("/register-barbershop");
         setLoading(false);
         return;
@@ -70,7 +72,7 @@ export default function BarbershopDashboard() {
       await reloadBarbers(shopData.id);
       setLoading(false);
     })();
-  }, [session, navigate]);
+  }, [session, navigate, t]);
 
   // ── Öffnungszeiten laden & speichern ────────────────────────────
   const reloadHours = async id => {
@@ -105,12 +107,13 @@ export default function BarbershopDashboard() {
         onConflict: ["barbershop_id","day_of_week"],
         returning: "minimal"
       });
-    setMessage(error
-      ? "Fehler beim Speichern der Öffnungszeiten."
-      : "Öffnungszeiten gespeichert!"
+    setMessage(
+      error
+        ? t("error_saving_hours")
+        : t("hours_saved")
     );
     if (!error) await reloadHours(shop.id);
-    setTimeout(()=>setMessage(""), 3000);
+    setTimeout(() => setMessage(""), 3000);
     setLoading(false);
   };
 
@@ -137,7 +140,7 @@ export default function BarbershopDashboard() {
     reloadServices(shop.id);
   };
   const removeService = async id => {
-    if (!confirm("Service löschen?")) return;
+    if (!confirm(t("confirm_delete_service"))) return;
     await supabase
       .from("shop_services")
       .delete()
@@ -150,18 +153,17 @@ export default function BarbershopDashboard() {
       .insert({ barbershop_id: shop.id, name: "", price: 0 })
       .select()
       .single();
-    if (!error) setServices(s=>[...s,data]);
+    if (!error) setServices(s => [...s, data]);
   };
 
-  // ── Barbers laden (Name + E-Mail direkt aus barbers.email) ────────────────────────────
+  // ── Barbers laden ────────────────────────────
   const reloadBarbers = async shopId => {
     const { data, error } = await supabase
       .from("barbers")
       .select("id,full_name,email,is_active")
-      .eq("barbershop_id",shopId)
+      .eq("barbershop_id", shopId)
       .order("full_name");
-    if (error) console.error("reloadBarbers:",error);
-    else       setBarbers(data);
+    if (!error) setBarbers(data);
   };
 
   // ── Neuen Barber anlegen ────────────────────────────
@@ -176,8 +178,6 @@ export default function BarbershopDashboard() {
         barbershop_id: shop.id,
         is_active:     true
       };
-      // falls du die Edge-Function verwenden willst, tausche unten .insert gegen:
-      // const { data, error } = await supabase.functions.invoke("create-barber", {body:JSON.stringify(payload)});
       const { data, error } = await supabase
         .from("barbers")
         .insert(payload)
@@ -188,26 +188,26 @@ export default function BarbershopDashboard() {
       await reloadBarbers(shop.id);
       setNewBarber({ full_name:"", email:"", password:"" });
     } catch (err) {
-      alert("Fehler: "+err.message);
+      alert(t("error_generic") + ": " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   // ── Barber sperren / löschen ────────────────────────────
-  const toggleBarberActive = async (id,act) => {
+  const toggleBarberActive = async (id, act) => {
     await supabase
       .from("barbers")
-      .update({ is_active:act })
-      .eq("id",id);
+      .update({ is_active: act })
+      .eq("id", id);
     reloadBarbers(shop.id);
   };
   const deleteBarber = async id => {
-    if (!confirm("Barber wirklich löschen?")) return;
+    if (!confirm(t("confirm_delete_barber"))) return;
     await supabase
       .from("barbers")
       .delete()
-      .eq("id",id);
+      .eq("id", id);
     reloadBarbers(shop.id);
   };
 
@@ -216,16 +216,16 @@ export default function BarbershopDashboard() {
     e.preventDefault();
     if (!shop) return;
     setLoading(true);
-    let logo_url = shop.logo_url;
-    let image_url= shop.image_url;
+    let logo_url  = shop.logo_url;
+    let image_url = shop.image_url;
 
     if (logoFile) {
       const ext  = logoFile.name.split(".").pop();
       const path = `${shop.id}/logo_${Date.now()}.${ext}`;
-      const { data:up } = await supabase
+      const { data: up } = await supabase
         .storage
         .from("shop-logos")
-        .upload(path,logoFile,{upsert:true});
+        .upload(path, logoFile, { upsert: true });
       logo_url = (await supabase
         .storage
         .from("shop-logos")
@@ -236,10 +236,10 @@ export default function BarbershopDashboard() {
     if (imgFile) {
       const ext  = imgFile.name.split(".").pop();
       const path = `${shop.id}/img_${Date.now()}.${ext}`;
-      const { data:up } = await supabase
+      const { data: up } = await supabase
         .storage
         .from("shop-images")
-        .upload(path,imgFile,{upsert:true});
+        .upload(path, imgFile, { upsert: true });
       image_url = (await supabase
         .storage
         .from("shop-images")
@@ -249,118 +249,125 @@ export default function BarbershopDashboard() {
 
     const { error } = await supabase
       .from("barbershops")
-      .update({ name:shopName, logo_url, image_url })
-      .eq("id",shop.id);
+      .update({ name: shopName, logo_url, image_url })
+      .eq("id", shop.id);
 
-    setMessage(error
-      ? "Speichern fehlgeschlagen."
-      : "Shop-Daten gespeichert!"
+    setMessage(
+      error
+        ? t("error_saving_shop")
+        : t("shop_saved")
     );
     if (!error) {
-      setShop({...shop, name:shopName, logo_url, image_url});
+      setShop({ ...shop, name: shopName, logo_url, image_url });
       setLogoFile(null);
       setImgFile(null);
     }
-    setTimeout(()=>setMessage(""),3000);
+    setTimeout(() => setMessage(""), 3000);
     setLoading(false);
   };
 
   // ── Render ────────────────────────────────────
-  if (loading) return <p className={styles.loading}>Lade Daten…</p>;
+  if (loading) return <p className={styles.loading}>{t("loading")}</p>;
   if (!shop)    return null;
 
   return (
     <div className={styles.wrapper}>
       <section className={styles.card}>
 
-        {/* ─── Linke Spalte: Shop-Daten ────────────── */}
+        {/* Linke Spalte: Shop-Daten */}
         <div className={styles.left}>
-          <h1 className={styles.title}>Willkommen, {shop.name}!</h1>
-          {logoPreview && <img src={logoPreview} alt="Logo" className={styles.thumbnail}/>}
-          {imgPreview  && <img src={imgPreview } alt="Shop" className={styles.thumbnail}/>}
+          <h1 className={styles.title}>
+            {t("welcome_shop", { shop: shop.name })}
+          </h1>
+          {logoPreview && (
+            <img src={logoPreview} alt={t("logo")} className={styles.thumbnail} />
+          )}
+          {imgPreview && (
+            <img src={imgPreview} alt={t("shop_image")} className={styles.thumbnail} />
+          )}
 
-          <h2 className={styles.title}>Shop-Daten</h2>
+          <h2 className={styles.title}>{t("shop_data")}</h2>
           <form onSubmit={saveShopDetails} className={styles.form}>
             <input
               className={styles.input}
-              placeholder="Shop-Name"
+              placeholder={t("shop_name")}
               value={shopName}
-              onChange={e=>setShopName(e.target.value)}
+              onChange={e => setShopName(e.target.value)}
               required
             />
             <label>
-              Logo:
+              {t("logo")}:
               <input
                 type="file"
                 accept="image/*"
-                onChange={e=>{
+                onChange={e => {
                   setLogoFile(e.target.files[0]);
                   setLogoPreview(URL.createObjectURL(e.target.files[0]));
                 }}
               />
             </label>
             <label>
-              Shop-Bild:
+              {t("shop_image")}:
               <input
                 type="file"
                 accept="image/*"
-                onChange={e=>{
+                onChange={e => {
                   setImgFile(e.target.files[0]);
                   setImgPreview(URL.createObjectURL(e.target.files[0]));
                 }}
               />
             </label>
-            <button className={styles.button}>Speichern</button>
+            <button className={styles.button}>{t("save")}</button>
           </form>
         </div>
 
-        {/* ─── Rechte Spalte ───────────────────────── */}
+        {/* Rechte Spalte */}
         <div className={styles.right}>
           {message && <div className={styles.success}>{message}</div>}
 
           {/* Öffnungszeiten */}
           <div className={styles.subsection}>
-            <h2 className={styles.title}>Öffnungszeiten</h2>
+            <h2 className={styles.title}>{t("opening_hours")}</h2>
             <div className={styles.hoursGrid}>
-              <div className={styles.gridHeader}>Tag</div>
-              <div className={styles.gridHeader}>Status</div>
-              <div className={styles.gridHeader}>Öffnet</div>
-              <div className={styles.gridHeader}>Schließt</div>
-              {openingHours.map((h,i)=>(
+              <div className={styles.gridHeader}>{t("day")}</div>
+              <div className={styles.gridHeader}>{t("status")}</div>
+              <div className={styles.gridHeader}>{t("opens")}</div>
+              <div className={styles.gridHeader}>{t("closes")}</div>
+              {openingHours.map((h, i) => (
                 <React.Fragment key={h.day_of_week}>
                   <div className={styles.gridCell}>
-                    {["Mo","Di","Mi","Do","Fr","Sa","So"][h.day_of_week-1]}
+                    {t(`weekday_${h.day_of_week}`)}
                   </div>
                   <select
-                    value={h.is_closed?"closed":"open"}
-                    onChange={e=>{
-                      const a=[...openingHours];
-                      a[i].is_closed=e.target.value==="closed";
+                    value={h.is_closed ? "closed" : "open"}
+                    onChange={e => {
+                      const a = [...openingHours];
+                      a[i].is_closed = e.target.value === "closed";
                       setOpeningHours(a);
                     }}
                   >
-                    <option value="open">Offen</option>
-                    <option value="closed">Geschlossen</option>
+                    <option value="open">{t("open")}</option>
+                    <option value="closed">{t("closed")}</option>
                   </select>
                   <input
                     type="time"
                     className={styles.timeInput}
-                    value={h.open_time||""}
+                    value={h.open_time || ""}
                     disabled={h.is_closed}
-                    onChange={e=>{
-                      const a=[...openingHours];
-                      a[i].open_time=e.target.value;
+                    onChange={e => {
+                      const a = [...openingHours];
+                      a[i].open_time = e.target.value;
                       setOpeningHours(a);
                     }}
                   />
                   <input
                     type="time"
                     className={styles.timeInput}
-                    value={h.close_time||""}
+                    value={h.close_time || ""}
                     disabled={h.is_closed}
-                    onChange={e=>{
-                      const a=[...openingHours];
-                      a[i].close_time=e.target.value;
+                    onChange={e => {
+                      const a = [...openingHours];
+                      a[i].close_time = e.target.value;
                       setOpeningHours(a);
                     }}
                   />
@@ -368,26 +375,30 @@ export default function BarbershopDashboard() {
               ))}
             </div>
             <button onClick={saveOpeningHours} className={styles.button}>
-              Öffnungszeiten speichern
+              {t("save_opening_hours")}
             </button>
           </div>
 
           {/* Leistungen & Preise */}
           <div className={styles.subsection}>
-            <h2 className={styles.title}>Leistungen & Preise</h2>
+            <h2 className={styles.title}>{t("services_prices")}</h2>
             <table className={styles.servicesTable}>
               <thead>
-                <tr><th>Name</th><th>Preis (€)</th><th>Aktion</th></tr>
+                <tr>
+                  <th>{t("name")}</th>
+                  <th>{t("price")}</th>
+                  <th>{t("action")}</th>
+                </tr>
               </thead>
               <tbody>
-                {services.map(s=>(
+                {services.map(s => (
                   <tr key={s.id}>
                     <td>
                       <input
                         className={styles.input}
                         value={s.name}
-                        onChange={e=>setServices(ss=>
-                          ss.map(x=>x.id===s.id?{...x,name:e.target.value}:x)
+                        onChange={e => setServices(ss =>
+                          ss.map(x => x.id === s.id ? { ...x, name: e.target.value } : x)
                         )}
                       />
                     </td>
@@ -396,56 +407,62 @@ export default function BarbershopDashboard() {
                         className={styles.input}
                         type="number"
                         value={s.price}
-                        onChange={e=>setServices(ss=>
-                          ss.map(x=>x.id===s.id?{...x,price:e.target.value}:x)
+                        onChange={e => setServices(ss =>
+                          ss.map(x => x.id === s.id ? { ...x, price: e.target.value } : x)
                         )}
                       />
                     </td>
                     <td>
-                      <button className={styles.saveBtn} onClick={()=>saveService(s)}>Speichern</button>
-                      <button className={styles.deleteBtn} onClick={()=>removeService(s.id)}>Löschen</button>
+                      <button className={styles.saveBtn} onClick={() => saveService(s)}>
+                        {t("save")}
+                      </button>
+                      <button className={styles.deleteBtn} onClick={() => removeService(s.id)}>
+                        {t("delete")}
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <button onClick={addService} className={styles.button}>
-              Leistung hinzufügen
+              {t("add_service")}
             </button>
           </div>
 
           {/* Friseure verwalten */}
           <div className={styles.subsection}>
-            <h2 className={styles.title}>Friseure verwalten</h2>
+            <h2 className={styles.title}>{t("manage_barbers")}</h2>
             <form onSubmit={handleAddBarber} className={styles.barberForm}>
               <input
                 className={styles.input}
-                placeholder="Name"
+                placeholder={t("full_name")}
                 value={newBarber.full_name}
-                onChange={e=>setNewBarber(nb=>({...nb,full_name:e.target.value}))}
+                onChange={e => setNewBarber(nb => ({ ...nb, full_name: e.target.value }))}
                 required
               />
               <input
                 className={styles.input}
                 type="email"
-                placeholder="E-Mail"
+                placeholder={t("email")}
                 value={newBarber.email}
-                onChange={e=>setNewBarber(nb=>({...nb,email:e.target.value}))}
+                onChange={e => setNewBarber(nb => ({ ...nb, email: e.target.value }))}
                 required
               />
               <input
                 className={styles.input}
                 type="password"
-                placeholder="Passwort"
+                placeholder={t("password")}
                 value={newBarber.password}
-                onChange={e=>setNewBarber(nb=>({...nb,password:e.target.value}))}
+                onChange={e => setNewBarber(nb => ({ ...nb, password: e.target.value }))}
                 required
               />
-              <button className={styles.createBtn}>Barber anlegen</button>
+              <button className={styles.createBtn}>
+                {t("create_barber")}
+              </button>
             </form>
 
             <ul className={styles.barberList}>
-              {barbers.map(b=>(
+              {barbers.map(b => (
                 <li key={b.id} className={styles.barberListItem}>
                   <span>
                     <strong>{b.full_name}</strong><br/>
@@ -454,15 +471,15 @@ export default function BarbershopDashboard() {
                   <div className={styles.barberActions}>
                     <button
                       className={styles.lockBtn}
-                      onClick={()=>toggleBarberActive(b.id,!b.is_active)}
+                      onClick={() => toggleBarberActive(b.id, !b.is_active)}
                     >
-                      {b.is_active?"Sperren":"Entsperren"}
+                      {b.is_active ? t("lock") : t("unlock")}
                     </button>
                     <button
                       className={styles.deleteBtn}
-                      onClick={()=>deleteBarber(b.id)}
+                      onClick={() => deleteBarber(b.id)}
                     >
-                      Löschen
+                      {t("delete")}
                     </button>
                   </div>
                 </li>

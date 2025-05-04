@@ -1,0 +1,51 @@
+/* src/components/SlotScheduler.module.css */
+
+/* Container */
+.scheduler {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  font-family: inherit;
+}
+
+/* Barber-Select & Date-Picker */
+.selectBarber,
+.datePicker {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
+
+/* Grid of slots */
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+  gap: 0.5rem;
+}
+
+/* Individual slot button */
+.slotButton {
+  padding: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.slotButton:hover {
+  background: #e5e7eb;
+}
+
+/* Booked state */
+.booked {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}

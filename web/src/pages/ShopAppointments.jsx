@@ -41,7 +41,7 @@ export default function ShopAppointments() {
         ] = await Promise.all([
           supabase
             .from('appointments')
-            .select('id, appointment_time, status, barber_id, user_id, service_rating, cleanliness_rating')
+            .select('id, appointment_time, status, barber_id, user_id, service_id, service_rating, cleanliness_rating')
             .eq('barbershop_id', shopId)
             .order('appointment_time', { ascending: true }),
           supabase
@@ -146,10 +146,12 @@ export default function ShopAppointments() {
           const isPast = d < now
           const day  = d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})
           const time = d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
-          const barber = barbers.find(b=>b.id===a.barber_id)||{}
-          const service= services.find(s=>s.id===a.service_id)||{}
-          const prof   = profiles.find(p=>p.id===a.user_id)||{}
-          const customer = prof.first_name||prof.last_name ? `${prof.first_name} ${prof.last_name}`.trim():'–'
+          const barber  = barbers.find(b=>b.id===a.barber_id)   || {}
+          const service = services.find(s=>s.id===a.service_id) || {}
+          const prof    = profiles.find(p=>p.id===a.user_id)    || {}
+          const customer = prof.first_name||prof.last_name
+            ? `${prof.first_name} ${prof.last_name}`.trim()
+            : '–'
           const phone  = prof.phone||'–'
           const icon   = a.status==='pending'?'❓':'👍'
           return (
@@ -166,12 +168,19 @@ export default function ShopAppointments() {
               <div className={styles.actions}>
                 {!isPast && a.status==='pending' && (
                   <button className={styles.confirmBtn} onClick={async()=>{
-                    const { error } = await supabase.from('appointments').update({status:'confirmed'}).eq('id',a.id)
-                    if(!error) setAppts(xs=>xs.map(x=>x.id===a.id?{...x,status:'confirmed'}:x))
+                    const { error } = await supabase
+                      .from('appointments')
+                      .update({status:'confirmed'})
+                      .eq('id',a.id)
+                    if(!error) setAppts(xs=>xs.map(x=>
+                      x.id===a.id?{...x,status:'confirmed'}:x
+                    ))
                   }}>Bestätigen</button>
                 )}
                 {isPast && (
-                  <button className={styles.removeBtn} onClick={()=>setAppts(xs=>xs.filter(x=>x.id!==a.id))}>Aus der Ansicht entfernen</button>
+                  <button className={styles.removeBtn} onClick={()=>setAppts(xs=>xs.filter(x=>x.id!==a.id))}>
+                    Aus der Ansicht entfernen
+                  </button>
                 )}
               </div>
             </li>
@@ -182,9 +191,15 @@ export default function ShopAppointments() {
       {/* 2) Filter */}
       <div className={styles.filter}>
         <label htmlFor="barberSelect">Statistik für:</label>
-        <select id="barberSelect" value={filterBarberId||''} onChange={e=>setFilterBarberId(e.target.value||null)}>
+        <select
+          id="barberSelect"
+          value={filterBarberId||''}
+          onChange={e=>setFilterBarberId(e.target.value||null)}
+        >
           <option value="">👥 Alle Barbers</option>
-          {barbers.map(b=><option key={b.id} value={b.id}>{b.full_name}</option>)}
+          {barbers.map(b=>(
+            <option key={b.id} value={b.id}>{b.full_name}</option>
+          ))}
         </select>
       </div>
 
@@ -205,8 +220,13 @@ export default function ShopAppointments() {
         </div>
         <div className={styles.chartSection}>
           <h2>Kundenzufriedenheit</h2>
-          <Bar data={avgRatingData}
-            options={{ responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 5 } } }}
+          <Bar
+            data={avgRatingData}
+            options={{
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true, max: 5 } }
+            }}
           />
         </div>
       </div>
