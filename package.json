@@ -6,6 +6,7 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
+    "prepare": "patch-package",
     "postinstall": "patch-package"
   },
   "dependencies": {
