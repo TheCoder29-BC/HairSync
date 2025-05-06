@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "HairSync",
+    "slug": "hairsync",
+    "version": "1.0.0",
+    "sdkVersion": "53.0.0",
+    "icon": "./assets/app-icon.png",
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cd609fd9-a286-4317-acb7-b2cd0825c34c"
+      }
+    },
+    "plugins": [
+      "expo-task-manager",
+      "expo-background-fetch",
+      "expo-dev-client",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FF231F7C",
+          "useNextNotificationsApi": true
+        }
+      ]
+    ],
+    "android": {
+      "package": "com.anonymous.hairsync",
+      "icon": "./assets/app-icon.png",
+      "permissions": [
+        "NOTIFICATIONS"
+      ],
+      "edgeToEdgeEnabled": true
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.hairsync",
+      "buildNumber": "1.0.0",
+      "icon": "./assets/app-icon.png",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification",
+          "fetch"
+        ]
+      }
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}

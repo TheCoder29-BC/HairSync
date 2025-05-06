@@ -2,17 +2,19 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate }         from 'react-router-dom'
 import { useAuth }                   from '../context/AuthContext.jsx'
+import { useTranslation }            from 'react-i18next'
 import styles                        from './Login.module.css'
 
 export default function Login() {
+  const { t }            = useTranslation()
   const { session, login, logout } = useAuth()
-  const navigate                    = useNavigate()
+  const navigate         = useNavigate()
 
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
 
-  // Wenn bereits eingeloggt, direkt umleiten
+  // wenn schon eingeloggt → direkt zum Dashboard
   useEffect(() => {
     if (!session) return
     const role = session.user.user_metadata?.role
@@ -33,14 +35,13 @@ export default function Login() {
       return
     }
 
-    // Rolle auslesen und umleiten
     const role = data.session?.user?.user_metadata?.role
     if (role === 'customer') {
       navigate('/barbershops', { replace: true })
     } else if (role === 'barbershop') {
       navigate('/barbershop-dashboard', { replace: true })
     } else {
-      setError('Unbekannte Rolle – bitte neu anmelden.')
+      setError(t('unknown_role'))
       await logout()
     }
   }
@@ -48,50 +49,47 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <form onSubmit={handleLogin} className={styles.card}>
-        <h2 className={styles.title}>Login</h2>
+        <h2 className={styles.title}>{t('login')}</h2>
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.field}>
-          <label>Email</label>
+          <label htmlFor="email">{t('email')}</label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
+            placeholder={t('enter_email')}
             required
           />
         </div>
 
         <div className={styles.field}>
-          <label>Passwort</label>
+          <label htmlFor="password">{t('password')}</label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
+            placeholder={t('enter_password')}
             required
           />
         </div>
 
-        {/* Passwort-vergessen-Link */}
         <p className={styles.forgot}>
           <Link to="/forgot-password" className={styles.link}>
-            Passwort vergessen?
+            {t('forgot_password')}?
           </Link>
         </p>
 
         <button type="submit" className={styles.button}>
-          Einloggen
+          {t('login_button')}
         </button>
 
         <div className={styles.footer}>
-          Noch kein Konto?{' '}
-          <Link to="/register" className={styles.link}>
-            Kunde registrieren
-          </Link>
-          <br />
-          Barbershop?{' '}
-          <Link to="/register-barbershop" className={styles.link}>
-            Jetzt registrieren
-          </Link>
+          {t('no_account')} <Link to="/register" className={styles.link}>{t('register_customer')}</Link>
+          <br/>
+          {t('is_shop')} <Link to="/register-barbershop" className={styles.link}>{t('register_shop')}</Link>
         </div>
       </form>
     </div>

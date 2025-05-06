@@ -1,27 +1,65 @@
 {
+  "type": "module",
   "name": "HairSync",
   "version": "1.0.0",
   "private": true,
+  "main": "index.js",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --clear",
     "android": "expo run:android",
     "ios": "expo run:ios",
+    "cli": "node cli/index.js",
     "prepare": "patch-package",
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@react-native-firebase/app": "^22.1.0",
+    "@react-native-firebase/messaging": "^22.1.0",
+    "@supabase/supabase-js": "^2.49.4",
+    "dotenv": "^16.5.0",
     "expo": "~53.0.7",
+    "expo-dev-client": "~5.1.8",
     "expo-device": "~7.1.4",
     "expo-notifications": "~0.31.1",
-    "expo-permissions": "^14.4.0",
-    "react": "18.2.0",
-    "react-native": "0.72.4",
+    "react": "19.0.0",
+    "react-native": "0.79.2",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-gifted-chat": "^2.8.1",
-    "expo-dev-client": "~5.1.8"
+    "expo-task-manager": "~13.1.5",
+    "expo-background-fetch": "~13.1.5"
   },
   "devDependencies": {
-    "patch-package": "^6.5.0",
-    "expo-doctor": "^1.13.2"
+    "expo-doctor": "^1.13.2",
+    "patch-package": "^6.5.0"
+  },
+  "expo": {
+    "name": "HairSync",
+    "slug": "hairsync",
+    "version": "1.0.0",
+    "android": {
+      "package": "com.yourcompany.hairsync"
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FF231F7C",
+          "useNextNotificationsApi": true,
+          "googleServicesFile": "./google-services.json"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cd609fd9-a286-4317-acb7-b2cd0825c34c"
+      }
+    },
+    "install": {
+      "exclude": [
+        "patches/*"
+      ]
+    }
   }
 }

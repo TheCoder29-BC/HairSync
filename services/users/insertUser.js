@@ -1,10 +1,9 @@
-import { supabase } from '../../supabaseClient.js'
+import { supabase } from '../supabase/client.js'
 
-export async function insertUser(user) {
+export async function insertAppointment(appt) {
   const { data, error } = await supabase
-    .from('users')
-    .insert([user])
-
-  if (error) console.error('Fehler beim Einfügen des Nutzers:', error.message)
-  else console.log('Nutzer hinzugefügt:', data)
+    .from('appointments')
+    .insert(appt)
+  if (error) throw new Error(error.message)
+  return data
 }

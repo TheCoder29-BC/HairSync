@@ -1,4 +1,16 @@
 {
+  "login": "Login",
+  "email": "Email",
+  "enter_email": "Enter your email",
+  "password": "Password",
+  "enter_password": "Enter your password",
+  "forgot_password": "Forgot password",
+  "login_button": "Log in",
+  "no_account": "Don't have an account?",
+  "register_customer": "Register as customer",
+  "is_shop": "Own a barbershop?",
+  "register_shop": "Register here",
+  "unknown_role": "Unknown role – please sign in again.",
   "please_login_to_view":   "Please log in to view your appointments.",
   "error_loading_appointments": "Error loading appointments.",
   "loading":                "Loading…",
@@ -71,6 +83,7 @@
   "logo_alt": "Shop Logo",
   "logged_in_as": "Logged in as",
   "profile": "Profile",
-  "sign_out": "Sign Out"
+  "sign_out": "Sign Out",
+  "chat": "Chat"
   
 }

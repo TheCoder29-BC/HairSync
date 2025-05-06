@@ -1,25 +1,29 @@
+// src/App.jsx
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Navbar from './components/Navbar.jsx'
-import Login from './pages/Login.jsx'
-import ForgotPassword from './pages/ForgotPassword.jsx'
-import ResetPassword from './pages/ResetPassword.jsx'
-import Register from './pages/Register.jsx'
-import RegisterBarbershop from './pages/RegisterBarbershop.jsx'
-import Barbershops from './pages/Barbershops.jsx'
-import ShopDetail from './pages/ShopDetail.jsx'
-import CustomerAppointments from './pages/CustomerAppointments.jsx'
-import BarbershopDashboard from './pages/BarbershopDashboard.jsx'
-import ShopAppointments from './pages/ShopAppointments.jsx'
-import BarbershopSchedule from './pages/BarbershopSchedule.jsx'
-import Profile from './pages/Profile.jsx'
-import BookAppointment from './pages/BookAppointment.jsx'
-import BookingPage from './pages/BookingPage.jsx'
-import { useAuth } from './context/AuthContext.jsx'
+import Navbar                        from './components/Navbar.jsx'
+import Login                         from './pages/Login.jsx'
+import ForgotPassword                from './pages/ForgotPassword.jsx'
+import ResetPassword                 from './pages/ResetPassword.jsx'
+import Register                      from './pages/Register.jsx'
+import RegisterBarbershop            from './pages/RegisterBarbershop.jsx'
+import Barbershops                   from './pages/Barbershops.jsx'
+import ShopDetail                    from './pages/ShopDetail.jsx'
+import CustomerAppointments          from './pages/CustomerAppointments.jsx'
+import BarbershopDashboard           from './pages/BarbershopDashboard.jsx'
+import ShopAppointments              from './pages/ShopAppointments.jsx'
+import BarbershopSchedule            from './pages/BarbershopSchedule.jsx'
+import Profile                       from './pages/Profile.jsx'
+import BookAppointment               from './pages/BookAppointment.jsx'
+import BookingPage                   from './pages/BookingPage.jsx'
+import ConversationsList             from './pages/ConversationsList.jsx'
+import Chat                          from './pages/Chat.jsx'
+import ChatDetail                    from './pages/ChatDetail.jsx'
+import { useAuth }                   from './context/AuthContext.jsx'
 
 function RequireAuth({ children, role }) {
   const { session } = useAuth()
-  if (session === undefined) return null      // noch am Laden
+  if (session === undefined) return null   // noch am Laden
   if (!session)           return <Navigate to="/login" replace />
   if (role && session.user.user_metadata.role !== role) {
     return <Navigate to="/login" replace />
@@ -33,17 +37,17 @@ export default function App() {
       <Navbar />
 
       <Routes>
-        {/* Standard-Weiterleitung */}
+        {/* Root → Login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Public */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/register" element={<Register />} />
+        {/* Öffentlich */}
+        <Route path="/login"               element={<Login />} />
+        <Route path="/forgot-password"     element={<ForgotPassword />} />
+        <Route path="/reset-password"      element={<ResetPassword />} />
+        <Route path="/register"            element={<Register />} />
         <Route path="/register-barbershop" element={<RegisterBarbershop />} />
 
-        {/* Buchungs-Flow (Customer) */}
+        {/* Buchung (Kunde) */}
         <Route
           path="/book"
           element={
@@ -61,7 +65,7 @@ export default function App() {
           }
         />
 
-        {/* Customer-Bereich */}
+        {/* Kunden-Bereich */}
         <Route
           path="/barbershops"
           element={
@@ -91,6 +95,36 @@ export default function App() {
           element={
             <RequireAuth>
               <Profile />
+            </RequireAuth>
+          }
+        />
+
+        {/* Chat-Übersicht für Kunde & Barbershop */}
+        <Route
+          path="/conversations"
+          element={
+            <RequireAuth>
+              <ConversationsList />
+            </RequireAuth>
+          }
+        />
+
+        {/* Chat starten (Kunde) */}
+        <Route
+          path="/chat/:barbershopId"
+          element={
+            <RequireAuth role="customer">
+              <Chat />
+            </RequireAuth>
+          }
+        />
+
+        {/* Bestehende Conversation öffnen (Kunde & Barbershop) */}
+        <Route
+          path="/conversations/:conversationId"
+          element={
+            <RequireAuth>
+              <ChatDetail />
             </RequireAuth>
           }
         />

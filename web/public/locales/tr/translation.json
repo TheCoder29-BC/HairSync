@@ -1,4 +1,16 @@
 {
+  "login": "Giriş Yap",
+  "email": "E-posta",
+  "enter_email": "E-posta adresinizi girin",
+  "password": "Parola",
+  "enter_password": "Parolanızı girin",
+  "forgot_password": "Parolanızı mı unuttunuz",
+  "login_button": "Giriş",
+  "no_account": "Hesabınız yok mu?",
+  "register_customer": "Müşteri olarak kayıt ol",
+  "is_shop": "Kuaför dükkanınız mı var?",
+  "register_shop": "Buradan kayıt olun",
+  "unknown_role": "Bilinmeyen rol – lütfen tekrar giriş yapın.",
   "please_login_to_view":   "Randevularınızı görüntülemek için lütfen giriş yapın.",
   "error_loading_appointments": "Randevular yüklenirken hata oluştu.",
   "loading":                "Yükleniyor…",
@@ -71,5 +83,6 @@
   "logo_alt": "Mağaza Logosu",
   "logged_in_as": "Oturum Açan",
   "profile": "Profil",
-  "sign_out": "Çıkış Yap"
+  "sign_out": "Çıkış Yap",
+  "chat": "Sohbet"
 }

@@ -1,0 +1,68 @@
+/* web/src/pages/ChatDetail.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 1rem;
+  }
+  .header {
+    margin-bottom: 0.5rem;
+  }
+  .backLink {
+    text-decoration: none;
+    color: #4f46e5;
+    font-weight: 500;
+  }
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0;
+  }
+  .bubble {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0;
+    border-radius: 1rem;
+    line-height: 1.4;
+  }
+  .bubbleLeft {
+    background: #f1f1f1;
+    align-self: flex-start;
+    border-bottom-left-radius: 0;
+  }
+  .bubbleRight {
+    background: #4f46e5;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 0;
+  }
+  .inputContainer {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    outline: none;
+  }
+  .sendButton {
+    padding: 0 1rem;
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .sendButton:disabled {
+    background: #a5b4fc;
+    cursor: not-allowed;
+  }
+  .loading,
+  .errorBanner {
+    text-align: center;
+    margin-top: 2rem;
+    color: #1f2937;
+  }
+  

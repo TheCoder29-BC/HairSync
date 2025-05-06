@@ -1,5 +1,4 @@
-import { supabase } from '../../supabaseClient.js'
-
+import { supabase } from '../supabase/client.js'
 export async function insertService(service) {
   const { data, error } = await supabase
     .from('services')

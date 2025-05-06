@@ -1,4 +1,4 @@
-import { supabase } from '../../supabaseClient.js'
+import { supabase } from '../supabase/client.js'
 
 export async function insertBarber(barber) {
   const { data, error } = await supabase
