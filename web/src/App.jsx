@@ -16,8 +16,9 @@ import BarbershopSchedule            from './pages/BarbershopSchedule.jsx'
 import Profile                       from './pages/Profile.jsx'
 import BookAppointment               from './pages/BookAppointment.jsx'
 import BookingPage                   from './pages/BookingPage.jsx'
+
 import ConversationsList             from './pages/ConversationsList.jsx'
-import Chat                          from './pages/Chat.jsx'
+import StartConversation             from './pages/StartConversation.jsx'
 import ChatDetail                    from './pages/ChatDetail.jsx'
 import { useAuth }                   from './context/AuthContext.jsx'
 
@@ -99,7 +100,7 @@ export default function App() {
           }
         />
 
-        {/* Chat-Übersicht für Kunde & Barbershop */}
+        {/* Chat-Übersicht */}
         <Route
           path="/conversations"
           element={
@@ -114,12 +115,12 @@ export default function App() {
           path="/chat/:barbershopId"
           element={
             <RequireAuth role="customer">
-              <Chat />
+              <StartConversation />
             </RequireAuth>
           }
         />
 
-        {/* Bestehende Conversation öffnen (Kunde & Barbershop) */}
+        {/* Bestehende Conversation öffnen */}
         <Route
           path="/conversations/:conversationId"
           element={

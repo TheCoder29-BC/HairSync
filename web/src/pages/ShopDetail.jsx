@@ -59,12 +59,7 @@ function generateSlots(openTime, closeTime, interval = 30) {
   let cur = new Date(0, 0, 0, oh, om)
   const end = new Date(0, 0, 0, ch, cm)
   while (cur < end) {
-    slots.push(
-      cur.toLocaleTimeString('de-DE', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    )
+    slots.push(cur.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }))
     cur = new Date(cur.getTime() + interval * 60000)
   }
   return slots
@@ -83,7 +78,7 @@ export default function ShopDetail() {
 
   // Booking-Form States
   const [date, setDate]               = useState(new Date())
-  const [barberId, setBarberId]       = useState('')   // Barbers.id
+  const [barberId, setBarberId]       = useState('')
   const [time, setTime]               = useState('')
   const [serviceId, setServiceId]     = useState('')
   const [appointment, setAppointment] = useState(null)

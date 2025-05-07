@@ -29,31 +29,86 @@
   font-weight: 700;
   color: var(--accent);
   text-decoration: none;
-  font-family: inherit;
 }
 
-/* rechter Bereich */
 .right {
   display: flex;
   align-items: center;
+  overflow: visible;
+}
+
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+  margin-right: 1.5rem;
+  font-size: 1rem;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
   font-family: inherit;
 }
 
-/* Profil-Dropdown mit flex, um Flag und Avatar nebeneinander zu positionieren */
-.profile {
+.link:hover {
+  color: var(--accent);
+}
+
+/* Unterstreichung */
+.link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 2px;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.link:hover::after,
+.link.active::after {
+  width: 100%;
+}
+
+.link.active {
+  color: var(--accent);
+}
+
+@keyframes badge-pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
   display: flex;
   align-items: center;
-  position: relative;
-  font-family: inherit;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 20;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+  animation: badge-pop 0.3s ease;
 }
 
-/* Language-Flaggen im Profil */
 .flagWrapper {
   display: flex;
   align-items: center;
   position: relative;
   margin-right: 0.75rem;
 }
+
 .flagButton {
   background: none;
   border: none;
@@ -62,14 +117,17 @@
   transition: color 0.2s ease;
   color: var(--primary);
 }
+
 .flagButton:hover {
   color: var(--accent);
 }
+
 .flagIcon {
   width: 1.5rem;
   height: 1.5rem;
   object-fit: contain;
 }
+
 .flagDropdown {
   position: absolute;
   top: 2.5rem;
@@ -80,6 +138,7 @@
   overflow: hidden;
   z-index: 10;
 }
+
 .flagItem {
   display: flex;
   align-items: center;
@@ -94,50 +153,17 @@
   cursor: pointer;
   transition: background 0.2s ease;
 }
+
 .flagItem:hover {
   background: var(--bg);
 }
 
-/* Avatar Bild */
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* Links */
-.link {
+.profile {
+  display: flex;
+  align-items: center;
   position: relative;
-  margin-right: 1.5rem;
-  font-size: 1rem;
-  color: var(--primary);
-  text-decoration: none;
-  transition: color 0.2s ease;
-  font-family: inherit;
-}
-.link:hover {
-  color: var(--accent);
-}
-.link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -3px;
-  height: 2px;
-  width: 0;
-  background: var(--accent);
-  transition: width 0.3s ease;
-}
-.link:hover::after,
-.link.active::after {
-  width: 100%;
-}
-.link.active {
-  color: var(--accent);
 }
 
-/* Avatar/Icon-Button */
 .iconButton {
   background: none;
   border: none;
@@ -146,15 +172,23 @@
   color: var(--primary);
   transition: color 0.2s ease;
 }
+
 .iconButton:hover {
   color: var(--accent);
 }
+
 .icon {
   width: 1.5rem;
   height: 1.5rem;
 }
 
-/* Profil-Dropdown */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .dropdown {
   position: absolute;
   top: 2.5rem;
@@ -166,6 +200,7 @@
   overflow: hidden;
   z-index: 10;
 }
+
 .dropdownItem {
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
@@ -175,17 +210,19 @@
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.2s ease;
-  font-family: inherit;
 }
+
 .dropdownItem:hover {
   background: var(--bg);
 }
+
 .signOut {
   color: #ef4444;
   border: none;
   width: 100%;
   text-align: center;
 }
+
 .signOut:hover {
   background: rgba(239, 68, 68, 0.1);
 }

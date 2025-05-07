@@ -1,0 +1,10 @@
+/* web/src/pages/StartConversation.module.css */
+.loaderContainer {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #4f46e5;
+  }
+  

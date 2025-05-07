@@ -1,68 +1,123 @@
 /* web/src/pages/ChatDetail.module.css */
-.container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    padding: 1rem;
-  }
-  .header {
-    margin-bottom: 0.5rem;
-  }
-  .backLink {
-    text-decoration: none;
-    color: #4f46e5;
-    font-weight: 500;
-  }
-  .messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem 0;
-  }
-  .bubble {
-    max-width: 70%;
-    padding: 0.75rem 1rem;
-    margin: 0.25rem 0;
-    border-radius: 1rem;
-    line-height: 1.4;
-  }
-  .bubbleLeft {
-    background: #f1f1f1;
-    align-self: flex-start;
-    border-bottom-left-radius: 0;
-  }
-  .bubbleRight {
-    background: #4f46e5;
-    color: white;
-    align-self: flex-end;
-    border-bottom-right-radius: 0;
-  }
-  .inputContainer {
-    display: flex;
-    gap: 0.5rem;
-  }
-  .input {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    outline: none;
-  }
-  .sendButton {
-    padding: 0 1rem;
-    background: #4f46e5;
-    color: #fff;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-  }
-  .sendButton:disabled {
-    background: #a5b4fc;
-    cursor: not-allowed;
-  }
-  .loading,
-  .errorBanner {
-    text-align: center;
-    margin-top: 2rem;
-    color: #1f2937;
-  }
-  
+
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  padding: 1rem;
+  background: #f9f9f9;
+  width: 50%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  width: 80%;
+  margin-bottom: 0.5rem;
+}
+
+.backLink {
+  text-decoration: none;
+  color: #4f46e5;
+  font-weight: 500;
+}
+
+.messages {
+  flex: 1;
+  width: 100%;
+  padding: 1rem 2rem;             /* rechts und links mehr Abstand */
+  background: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Basis für alle Sprechblasen */
+.bubble {
+  position: relative;
+  display: inline-block;
+  max-width: 50%;
+  padding: 0.75rem 1rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Eingehende Nachricht (links) */
+.bubbleLeft {
+  background: #f1f1f1;
+  /* feste Margen: 0 oben/unten, 50% rechts, 1rem links */
+  margin: 0 50% 0 1rem;
+  border-radius: 0.4rem 1rem 1rem 1rem;
+}
+.bubbleLeft::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #f1f1f1;
+  transform: rotate(45deg);
+  top: 12px;
+  left: -6px;
+  border-bottom-right-radius: 2px;
+}
+
+/* Ausgehende Nachricht (rechts) */
+.bubbleRight {
+  background: #4f46e5;
+  color: #fff;
+  /* feste Margen: 0 oben/unten, 1rem rechts, 50% links */
+  margin: 0 1rem 0 50%;
+  border-radius: 1rem 0.4rem 1rem 1rem;
+}
+.bubbleRight::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #4f46e5;
+  transform: rotate(45deg);
+  top: 12px;
+  right: -6px;
+  border-bottom-left-radius: 2px;
+}
+
+.inputContainer {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 1rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  outline: none;
+}
+
+.sendButton {
+  padding: 0 1rem;
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.sendButton:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.loading,
+.errorBanner {
+  text-align: center;
+  margin-top: 2rem;
+  color: #1f2937;
+}
